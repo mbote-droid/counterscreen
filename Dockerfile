@@ -5,7 +5,7 @@
 # containers and are reached through adapters, so this image stays small and
 # reproducible. See DESIGN.md section 1.
 
-FROM python:3.12-slim-bookworm AS build
+FROM python:3.15-slim-bookworm AS build
 
 COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /bin/uv
 
@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable --no-dev
 
 
-FROM python:3.12-slim-bookworm AS runtime
+FROM python:3.15-slim-bookworm AS runtime
 
 # A pinned, unprivileged user keeps committed results owned predictably
 # when the campaign tree is bind-mounted.
