@@ -134,6 +134,8 @@ Control sequence provenance, including any substitution of the intended panel: `
 
 **Primary estimator.** Because observations are clustered by target with few per target, a mixed-effects logistic model (`binds ~ margin + (1 + margin | target)`) was fitted as the primary analysis, with target-level random intercept and slope. Partial pooling shrinks unstable per-target estimates toward the population mean. The cluster bootstrap is retained as a sensitivity check rather than the headline; material disagreement between the two is reported. `[FILL]`
 
+Because the registered minimum is four targets, the full random-slope model is frequently not identifiable at the available n. The estimator is therefore a pre-registered ladder, descended only on a stated failure and never on taste: rung 1 `binds ~ margin + (1 + margin | target)`; rung 2 `binds ~ margin + (1 | target)`; rung 3 `binds ~ margin` with target-clustered robust standard errors. Rung used: `[FILL]`. Descending a rung is itself reported, since it says the data could not support the model the analysis wanted.
+
 ### 8.2 Raw experimental data re-analysis
 
 `[FILL — conditional on designs being selected and tested]`
@@ -182,7 +184,9 @@ Each negative control was additionally required to fail **at its registered gate
 
 Deliberately invalid designs were pushed through the complete ranking pipeline and the resulting false-accept rate measured: scrambled sequences, designs with the key contact residue mutated to alanine, designs generated against an unrelated target, and reversed sequences.
 
-Measured false-accept rate: `[[far.point]]` (95% CI `[[far.ci_lo]]`–`[[far.ci_hi]]`), by `[FILL — Wilson or rule-of-three]`. `[FILL]`
+Sample size was registered before running: **10 adversarial designs per class, 40 in total** (`PREREGISTRATION.md` §7b). Registering n matters because the width of this interval is the result; choosing n after seeing how many were accepted would let the interval be tuned.
+
+Measured false-accept rate: `[[far.point]]` (95% CI `[[far.ci_lo]]`–`[[far.ci_hi]]`), by the Wilson method, or by the rule of three where zero adversarial designs were accepted. `[FILL]`
 
 Code-level mutation score, fraction of deliberate one-line defects killed by the test suite: `[[mutation.score]]`. Surviving mutants and the tests added in response: `[FILL]`
 
@@ -206,8 +210,10 @@ Agreement indicates the scoring function behaves physically on this interaction 
 | Passed G2, confidence | `[[funnel.g2]]` |
 | Passed G3, peptide contact | `[[funnel.g3]]` |
 | Passed G4, margin above noise | `[[funnel.g4]]` |
+| Passed G5, hydrophobic patch | `[[funnel.g5]]` |
 | Passed G6, no buried unsatisfied charges | `[[funnel.g6]]` |
 | Passed G7 and G9, sequence and structural novelty | `[[funnel.g79]]` |
+| Passed G8, submission constraints | `[[funnel.g8]]` |
 | After diversity clustering | `[[funnel.clustered]]` |
 | Submitted | 20 |
 

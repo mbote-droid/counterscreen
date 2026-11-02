@@ -207,7 +207,7 @@ M2 and M3 are the differentiators. M1 is where the hits probably are.
 | Negative control | Must fail at |
 |---|---|
 | Backbone with an introduced chain break | G0 |
-| Design with a deliberately greasy surface | Hydrophobic patch check |
+| Design with a deliberately greasy surface | G5 |
 | Binder docked away from the peptide | G3 |
 | Near-copy of a known binder | G7 or G9 |
 | Scrambled sequence | G1 |
@@ -293,7 +293,7 @@ Document whichever path is taken and why.
 | G2 | Confidence ≥ **locally calibrated** operating point | Derived in Stage −1. Do **not** import 0.61 — wrong model, wrong metric [R2] |
 | G3 | Peptide contact fraction ≥ control-panel reference | Calibrated in Stage −1 on the TCR and Liu binders, not guessed |
 | G4 | M_mut and M_pep > 2 × pooled SD | Margin must beat prediction noise |
-| G5 | — | **Removed as a gate.** ΔΔG_spec is a ranking feature (§7.2) |
+| **G5** | **Hydrophobic patch: largest contiguous solvent-exposed apolar patch on the refolded monomer, at or below the 90th percentile of the positive control panel** | §5.4 registers a negative control that must fail at a hydrophobic patch check, and v0.5 had no such gate, so that control had no failure point. Also a real expression and aggregation liability. Derivation rule, no free parameter, mirroring G3. CPU, seconds: runs after G1, before any co-folding. ΔΔG_spec remains a ranking feature and is still not a gate (§7.2) |
 | G6 | No buried unsatisfied charges in the T+ complex | Expression and folding liability |
 | G7 | `binder-prescreen --target kras-pmhc` = pass | 51 known TCRs from IEDB, VDJdb, PDB, patents; v0.5 released 27 Oct 2026 for this challenge [R15] |
 | G8 | 10–250 aa, single chain, standard residues, no free Cys | Submission rules plus expression |
@@ -420,6 +420,8 @@ binds ~ margin + (1 + margin | target)
 ```
 
 with target-level random intercept and slope. Partial pooling shrinks noisy per-target estimates toward the population mean, yields a population-level effect with honest uncertainty, and gives per-target estimates that do not swing wildly at small n. Tools: `statsmodels` MixedLM, or `bambi` / `numpyro` for the Bayesian version with explicit priors.
+
+> **This model is not identifiable at the registered floor.** §12.2's stop rule admits as few as **4 targets**, and `(1 + margin | target)` must estimate a 2×2 random-effects covariance — two variances and a correlation — from that many clusters. It will typically return a singular fit or fail to converge, and a singular fit silently reported as the primary analysis is worse than a simpler model honestly chosen. **The fallback is therefore registered in advance as a ladder with a switch rule** (`PREREGISTRATION.md` §7), not decided at the keyboard once the fit misbehaves. The rung actually used is reported in every output.
 
 **Keep the cluster bootstrap as a sensitivity check, not as the headline.** Material disagreement between the hierarchical and bootstrap estimates is itself reportable.
 

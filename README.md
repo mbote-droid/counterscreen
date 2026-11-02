@@ -90,4 +90,6 @@ Earlier versions are superseded and should be discarded. Any file labelled v0.4 
 
 ## Licence
 
-`[choose before first public push]`
+Code is MIT (`LICENSE`). Documentation, including this README and the five
+specification files, is CC-BY-4.0 (`docs/LICENSE`). Per-source data terms,
+and the sources not yet cleared for ingestion, are recorded in `DATA.md`.

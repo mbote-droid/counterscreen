@@ -20,13 +20,22 @@ Committed: `[DATE]` · SHA: `[filled by git]`
 
 ## 2. Stage −1 pass/fail rule — written before running
 
-`[FILL BEFORE RUNNING. A worked template follows; replace with committed numbers.]`
+> **Registered as parameter-free conditions, for the reason §3 gives.** The v0.5
+> text carried four `[N]` placeholders, which is precisely the failure §3 forbids
+> three paragraphs later: a rule whose numbers are chosen after seeing the panel
+> does not bind, and this is the rule that decides whether the whole neural arm
+> proceeds. Every quantity below is either already registered elsewhere in this
+> document or a stated statistical convention.
 
 **Pass** requires all of:
-- Positive panel median `M_mut` exceeds `[N]` × the measured within-design seed SD
-- At least `[N]` of the `[N]` positive controls show `M_mut > 0`
-- Negative panel median `M_mut` does not differ from zero at `[criterion]`
-- The invariant-surface control shows `|M_mut| < [threshold]` and `|M_pep| < [threshold]`
+- Positive panel median `M_mut` exceeds `2 × pooled within-design seed SD` — the
+  G4 rule of §3, reused rather than a second threshold invented here
+- A strict majority of positive controls show `M_mut > 0`, against a null of one
+  half, by a one-sided exact binomial test at α = 0.05
+- Negative panel median `M_mut` does not differ from zero by a two-sided Wilcoxon
+  signed-rank test at α = 0.05
+- The invariant-surface control shows `|M_mut|` and `|M_pep|` both below
+  `2 × pooled within-design seed SD`
 
 **On fail:** abandon neural-primary scoring, switch to physics-primary, and validate that fallback on the same panel before proceeding.
 
@@ -45,6 +54,7 @@ Committed: `[DATE]` · SHA: `[filled by git]`
 | G2 confidence operating point | **The confidence value maximising F1 on the Stage −1 control panel. If two values tie, take the higher. Computed once, on the full panel, before any campaign design is scored.** | Derivation rule |
 | G3 peptide contact fraction | **The 10th percentile of the peptide-contact fraction achieved by the positive control panel.** | Derivation rule |
 | G4 margin vs noise | `M > 2 × pooled within-design seed SD`, SD measured per §5 | Fixed rule |
+| **G5 hydrophobic patch** | **Largest contiguous solvent-exposed apolar patch on the refolded monomer, at or below the 90th percentile of that statistic over the positive control panel. Apolar atoms are carbon and sulfur; patches are contiguous by surface adjacency; computed once on the full panel before any campaign design is scored.** | Derivation rule |
 | G6 buried unsatisfied charges | 0 | Fixed value |
 | G7 prescreen | verdict `pass` | Fixed value |
 | G8 submission constraints | 10–250 aa, single chain, standard residues, no free Cys | Competition rules |
@@ -77,7 +87,7 @@ No weighted composite is used. A weighted sum would require choosing weights, an
 
 Selection procedure, fixed in advance:
 1. Apply gates; log rejections per gate
-2. Cluster within each arm by structural similarity, threshold `[FILL]`
+2. Cluster within each arm by structural similarity: single-linkage at **TM-score ≥ 0.5**, the conventional same-fold boundary, computed with the same TM-align machinery that serves G9. Registered as a fixed value carrying an external justification, rather than a number tuned on our own designs
 3. Take cluster representatives
 4. Fill allocation: M1 = 9, M2 = 5, M3 = 4, affinity-only control = 1, reserve = 1
 5. Place the affinity-only control at approximately rank 10
@@ -87,7 +97,9 @@ Selection procedure, fixed in advance:
 
 ## 5. Noise floor
 
-Measured on Day 1 by running identical input `[N]` times and recording the spread of each confidence metric. That measured spread defines the `pooled SD` used in G4.
+Measured on Day 1 by running identical input **5 times** and recording the spread of each confidence metric. That measured spread defines the `pooled SD` used in G4.
+
+The repeat count is registered here rather than left open because the `2 × pooled SD` rule of G4, and therefore §2's pass condition, is measured against it: a repeat count chosen after seeing how noisy the metric turned out would set the noise floor to suit the result. Five is not a new decision — it is what `CLAUDE.md` §10 and `DESIGN.md` §5 already specify for the same measurement.
 
 Measured value: `[FILL]`
 
@@ -112,7 +124,7 @@ Positive controls: `[RECORD n]` · failures: `[RECORD]` · upper bound: `[RECORD
 | Negative control | Registered to fail at |
 |---|---|
 | Introduced chain break | G0 |
-| Deliberately greasy surface | Hydrophobic patch check |
+| Deliberately greasy surface | G5 |
 | Binder docked away from the peptide | G3 |
 | Near-copy of a known binder | G7 or G9 |
 | Scrambled sequence | G1 |
@@ -148,7 +160,14 @@ Panel actually used: `[FILL]`
 
 ## 7. Analyses planned in advance
 
-- **Primary estimator:** mixed-effects logistic model, `binds ~ margin + (1 + margin | target)`, target-level random intercept and slope
+- **Primary estimator: a registered ladder.** §5b admits as few as **4 targets**, and `binds ~ margin + (1 + margin | target)` must estimate a 2×2 random-effects covariance — two variances and a correlation — from that many clusters. At the registered floor it will commonly return a singular fit or fail to converge. A singular fit reported as the primary analysis is worse than a simpler model honestly chosen, so the descent is fixed now rather than at the keyboard:
+  | Rung | Model | Descend when |
+  |---|---|---|
+  | 1 | `binds ~ margin + (1 + margin \| target)` | — |
+  | 2 | `binds ~ margin + (1 \| target)` | rung 1 fails to converge, returns a singular fit, or puts a random-effect correlation at ±1 |
+  | 3 | `binds ~ margin`, target-clustered robust standard errors | rung 2 fails to converge or its intercept variance sits at the zero boundary |
+
+  The rung used is reported in every output, and descending is itself a reported result: it says the data could not support the model the analysis wanted. No rung below 3 is registered; if rung 3 fails, descriptive statistics only.
 - AUROC with cluster bootstrap by target, 2,000 replicates, retained as a sensitivity check
 - Occupancy and selectivity-index modelling under mass action, reported as a sensitivity surface over a stated copy-number range
 - Precision and recall across the full threshold range
@@ -168,6 +187,61 @@ Any analysis not listed here and performed later is labelled **post hoc** in all
 
 ---
 
+## 7b. Adversarial sample size, registered before running
+
+`CLAUDE.md` §12.4b level 2 and `METHODS.md` §8.5 require a false-accept rate with an interval but registered no n, which would leave the width of that interval — the result itself — to be settled after seeing how many adversarial designs were accepted.
+
+| Adversarial class | n |
+|---|---|
+| Scrambled sequences of passing designs | 10 |
+| Passing designs, key contact residue mutated to alanine | 10 |
+| Decoy-target swap, generated against an unrelated target | 10 |
+| Reversed sequences | 10 |
+| **Total** | **40** |
+
+Interval by the Wilson method; by the rule of three where zero are accepted, giving a 95% upper bound near 7.5% at n = 40. That bound is reported as the result, never as zero.
+
+**This is a floor, and it is affordable.** Most adversarial designs die at G0, G1 or G5, all of which are CPU and cost seconds, so only survivors reach co-folding and the GPU cost is far below the worst case of 40 × 3 targets × 2 seeds. If the Day-1 benchmark shows room for more, raising n is an amendment logged below; it is never lowered.
+
+---
+
 ## Amendments
 
 `[Append only. Each entry dated, with reason. Never edit the sections above.]`
+
+**All amendments below were made on 2 November 2026, before any campaign design
+was scored and before Stage −1 was run.** They are recorded here rather than
+folded silently into the text: the specification was committed verbatim one
+commit earlier, so every change is visible as a diff against it.
+
+| # | Section | Change | Reason |
+|---|---|---|---|
+| A1 | §3, §4b | **G5 registered as a hydrophobic patch gate**, as a derivation rule from the positive control panel | §4b registered a negative control — the deliberately greasy surface — that had to fail at a "hydrophobic patch check", and no such gate existed anywhere in G0–G9. A registered control with no failure point cannot fail as designed, so the diagnostic-code discipline of `CLAUDE.md` §5.4 was unenforceable for that control. G5 was vacant: it was emptied in v0.3 when ΔΔG_spec was demoted to a ranking feature, so the number is reused and the gate list stays contiguous. Placed after G1 in the ordering because it is CPU and costs seconds |
+| A2 | §4 step 2 | **Clustering threshold registered** as single-linkage at TM-score ≥ 0.5 | It was `[FILL]`, inside the registered selection procedure. A threshold left blank in a pre-registration is chosen after seeing the score distributions, which is the thing this document exists to prevent. TM-score 0.5 is the conventional same-fold boundary and reuses the machinery already registered for G9 |
+| A3 | §7 | **Primary estimator replaced by a three-rung ladder with a switch rule** | `binds ~ margin + (1 + margin \| target)` estimates a 2×2 random-effects covariance from as few as 4 targets, which §5b explicitly permits. At that n it will commonly return a singular fit or fail to converge. Without a registered descent, the fallback would be chosen after watching the fit misbehave, and a singular fit might be reported as though it were the registered primary analysis |
+| A4 | new §7b | **Adversarial sample size registered**: 10 per class, 40 total, Wilson or rule of three | `CLAUDE.md` §12.4b and `METHODS.md` §8.5 required a false-accept rate with an interval but registered no n. The width of that interval is the headline result, so an unregistered n would let it be tuned after seeing how many designs were accepted |
+| A6 | §5 | **Noise-floor repeat count set to 5**, matching `CLAUDE.md` §10 and `DESIGN.md` §5 | §5 left the repeat count as `[N]` while both companion files already specified five identical runs for the same measurement. Left open it would be a free parameter underneath G4 and §2, since the measured spread defines the `pooled SD` both depend on: a repeat count chosen after seeing the noise would set the floor to suit the result. Alignment with the registered value, not a new choice |
+| A5 | §2 | **Stage −1 pass/fail rule rewritten parameter-free** | §2 carried four `[N]` placeholders while §3, three paragraphs later, argued that registering a threshold as `[FILL]` means choosing it after seeing data, "which is exactly where a pre-registration most needs to bind". §2 is the rule that decides whether the neural arm proceeds at all, so it needed that discipline most. Now expressed through quantities already registered — the G4 rule — plus stated conventions |
+
+Changes made in the companion files at the same time, recorded here because
+they follow from the amendments above:
+
+| Section | Change |
+|---|---|
+| `CLAUDE.md` §8 | G5 row replaced; §5.4 diagnostic table now names G5 |
+| `CLAUDE.md` §12.2 | Identifiability of the random-slope model stated, pointing at the §7 ladder |
+| `METHODS.md` §8.7 | **G5 and G8 added to the funnel.** G8 was a live gate in `CLAUDE.md` §8 and §3 here, but had no funnel row, so the stage-to-stage consistency test `DESIGN.md` §8 requires would have been written against an incomplete funnel |
+| `METHODS.md` §8.1, §8.5 | Estimator ladder and registered adversarial n reflected in the write-up |
+| `DESIGN.md` §8b | Gate ordering diagram now places G5 after G1, before any co-folding |
+| `README.md` | Licence resolved: MIT for code, CC-BY-4.0 for documentation |
+
+Still open, and deliberately not amended here because neither can be settled
+without reading a primary source:
+
+- **`REFERENCES.md` [R11]** gives a single PDB accession, 7OW3, for six peptide
+  complexes, and `DESIGN.md` §2 needs three specific ones for decoys D3–D5. One
+  accession cannot carry six structures. 7OW3 also sits in the same block as
+  7OW4/5/6, which [R12] attributes to Poole et al. 2022 rather than to Zhu et
+  al. 2026. The entry is labelled `verified`. Resolve the accessions before
+  building D3–D5.
+- **§5.0 control sequences** remain the Day-1 blocker. Nothing here changes that.

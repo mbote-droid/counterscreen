@@ -261,8 +261,8 @@ Cross-referenced with `CLAUDE.md` §14. Engineering-specific exclusions:
 G0 costs seconds; co-folding costs minutes to hours. The pipeline must enforce the ordering, not merely document it.
 
 ```
-generate ──► G0 geometry ──► G1 self-consistency ──► G2-G4 co-folding ──► G6-G9 ──► rank
-             (CPU, seconds)   (cheap fold)            (expensive)
+generate ──► G0 geometry ──► G1 self-consistency ──► G5 hydrophobic patch ──► G2-G4 co-folding ──► G6-G9 ──► rank
+             (CPU, seconds)   (cheap fold)            (CPU, seconds)          (expensive)
 ```
 
 `fold/` should refuse a candidate that has not been stamped as G0-passed. A structure that is geometrically invalid is not a cheap mistake to fold, it is a wasted GPU-hour and a number in the results that means nothing.
