@@ -71,34 +71,58 @@ would partly measure that instead of the substitution.
 
 ---
 
-## F-3 · The Liu main text carries no binder sequences
+## F-3 · The Liu panel holds one single-residue control, not five
 
-**Believed.** `SETUP.md` §1 lists the Liu et al. supplement and paper as on
-disk, and §3.1 says to extract binder name, sequence, allele, on-target and
-off-target peptides from Supplementary Table 1.
+**Believed.** `SETUP.md` §3.1 says to extract the panel from Supplementary
+Table 1, and §3.2 states that only CTNNB1 S5F is a true single-residue
+discrimination, with others at 3 to 7 differences. `CLAUDE.md` §5.1 and §5.4
+describe an intended panel of **18 published binders** plus the 7OW6 TCR,
+giving n = 19 and a rule-of-three false-reject bound "near 16%".
 
-**Checked.** Extracted the full text of the supplied PDF
-(bioRxiv 2024.11.28.625793, *Design of high specificity binders for
-peptide-MHC-I complexes*). It contains **no amino-acid string longer than 24
-residues** and no supplementary table. It is the main text only; the
-designed-binder sequences are in a separate supplementary file.
+**Checked.** Supplementary Tables 1 and 2 are present in the preprint as
+page images, which is why a text search of the PDF finds nothing. Read
+directly, Table 1 gives every allele, target, on-target peptide and
+off-target peptides; Table 2 gives the design names and interface SASA.
+Counting differences between each on-target peptide and its *nearest*
+off-target:
 
-The residue-difference analysis of §3.2 was verified for the pairs the main
-text does name:
-
-| Case | On-target | Off-target | Differences |
+| Target | On-target | Nearest off-target | Differences |
 |---|---|---|---|
-| CTNNB1 S5F, A\*03:01 | `TTAPFLSGK` | `TTAPSLSGK` | **1**, at position 5 |
-| SARS-CoV1, A\*02:01 | `GLMWLSYFV` | `GLAWLSLFV` | 2 |
-| MAGE-A3 vs Titin, A\*01:01 | `EVDPIGHLY` | `ESDPIVAQY` | 4 |
+| CTNNB1 (S5F), A\*03:01 | `TTAPFLSGK` | `TTAPSLSGK` (CNTTB1) | **1** |
+| SARS-CoV M, A\*02:01 | `GLMWLSYFV` | `GLAWLSLFV` (KCNK5) | 2 |
+| HIV-Env, A\*02:01 | `KLTPLCVTL` | `KLIPLCHQL` (CTNNAL1) | 3 |
+| WT1, A\*02:01 | `RMFPNAPYL` | `RLFPNLPEL` (ARHGEF11) | 3 |
+| PAP, A\*02:01 | `TLMSAMTNL` | `TLFSALTGL` (ZMPSTE24) | 3 |
+| MAGE-A3, A\*01:01 | `EVDPIGHLY` | `ESDPIVAQY` (TTN) | 4 |
+| YFV NS4b, A\*02:01 | `LLWNGPIAV` | `IVWNGPVGV` (PGK2) | 4 |
+| gp100, A\*02:01 | `YLEPGPVTA` | `YLQPWPVDV` (ASB6) | 4 |
+| MART-1, A\*02:01 | `ELAGIGILTV` | `GLMGAGIAQV` (HADHA) | 5 |
+| PRAME, A\*02:01 | `ALYVDSLFFL` | `ILYVDPLPMI` (ATP2A1) | 5 |
 | *Our campaign* | `VVVGADGVGK` | `VVVGAGGVGK` | **1**, at position 6 |
 
-**Changed.** §3.2's table and its conclusion are confirmed: CTNNB1 S5F is the
-only true single-residue discrimination in the panel, and it is structurally
-the same problem as ours — one substitution, mid-peptide. Stage −1 remains
-blocked on the supplement, and the registered floor of five single-residue
-positive controls (`PREREGISTRATION.md` §6b) still requires the supplementary
-controls of `SETUP.md` §4.2.
+**Changed.** Three corrections, each affecting a registered number.
+
+1. §3.2's conclusion is confirmed and is exact: **one** target in ten is a
+   single-residue discrimination, and it is structurally our problem — one
+   mid-peptide substitution. Its range is 1 to 5 differences, not the 3 to 7
+   §3.2 estimates for the remainder.
+2. **The panel is ten designs, not eighteen.** Table 1 lists ten targets and
+   Table 2 thirteen rows, of which three are reference TCRs. The figure of 18
+   in `CLAUDE.md` §5.1 does not match the source. This changes §5.4's
+   arithmetic: with the TCR the panel is about 11, so the rule-of-three upper
+   bound on the false-reject rate is near **27%**, not the 16% stated for
+   n = 19.
+3. **The binder sequences are still absent.** Table 2 names the designs
+   (MAGE_513, HIV_10, PRAME_A9, CTNNb1_15 and the rest) and gives their
+   interface SASA, but no amino-acid sequences appear anywhere in the
+   preprint. Stage -1 needs sequences to fold, so it remains blocked, and the
+   §6b floor of five single-residue positive controls still requires the
+   supplementary controls of `SETUP.md` §4.2 — now demonstrably, since the
+   panel supplies one.
+
+> An earlier note in this file claimed the preprint contained no
+> supplementary table. That was wrong: the tables are page images and the
+> text extraction missed them. Corrected here rather than edited away.
 
 ---
 
