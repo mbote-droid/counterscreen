@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.12.*"
 
 [[package]]
@@ -89,7 +89,7 @@ wheels = [
 
 [[package]]
 name = "biotite"
-version = "1.8.0"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "biotraj" },
@@ -99,12 +99,12 @@ dependencies = [
     { name = "packaging" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f3/a3/f80315ca7e443e7d41d4eb9e9b101c4d3500dd8931c29fbac41d836d2ea6/biotite-1.8.0.tar.gz", hash = "sha256:7cef4a2a2acc142b9b3c10fe39070e6f4faa7bf65358ebf2bc05f1b0719a0c0b", size = 40881816, upload-time = "2026-10-16T10:46:03.001Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b4/92/d38007f947646f694caaa9a4176938920dee9ec601764ae3be1e8b604849/biotite-2.0.0.tar.gz", hash = "sha256:0adfb641b1b8879190c5f1e413ec2423cf6fcd7f0739ab62a8ddbca970aa753c", size = 40843411, upload-time = "2026-10-18T07:53:39.869Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/39/7d63bc24e0300762241c070b2ecc4fd98054f8bdd0c691997cf3f28802ac/biotite-1.8.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:99a806321b5d043599c0cd88e00c68447699d554d31d5dd3b855d15c871f7e30", size = 43114410, upload-time = "2026-10-16T10:44:54.633Z" },
-    { url = "https://files.pythonhosted.org/packages/6f/e3/2df860f046541b17d45d643f1e1e2fddc625f2d2b424d64b7923036e4f7d/biotite-1.8.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:6ec30437990db23f3c9f10296408effa81b885cc004a402bc87f86b4918a98dc", size = 45585580, upload-time = "2026-10-16T10:44:58.507Z" },
-    { url = "https://files.pythonhosted.org/packages/0f/f4/4fb4082ee8ecb4b5b9dd77936bcc9f221c739d15f68d0ff95918e674e124/biotite-1.8.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:8dc766852f6eb2cc708da673f08d0de1991633247dbc82687617e148c67004e1", size = 45718188, upload-time = "2026-10-16T10:45:02.232Z" },
-    { url = "https://files.pythonhosted.org/packages/8d/92/f614815c4f29a5d734a4c053bd580ba87be9ebaec65e1f2d209e5fa3eace/biotite-1.8.0-cp312-cp312-win_amd64.whl", hash = "sha256:98020a2b21840b9326389184dba0427096328aeaf5c2ab604c7cebe5c44f6e49", size = 42954920, upload-time = "2026-10-16T10:45:06.138Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/30/6917930b80dee0c90dd561b7f1814d60a5342983988fb22d50ddb091b427/biotite-2.0.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:66941d10ebac2384bbd5385d1bf2eddfbec2c862c329c9ee609ecc2c54b1126b", size = 41866683, upload-time = "2026-10-18T07:52:51.253Z" },
+    { url = "https://files.pythonhosted.org/packages/82/e9/4045060d195992e06884e2bd284c32db00684113aadfd7bfac1453538c64/biotite-2.0.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:2521ac2762fded4b199725fbb27c16576a341a18be85ae6fcc6a09ea3783aa99", size = 41894731, upload-time = "2026-10-18T07:52:54.181Z" },
+    { url = "https://files.pythonhosted.org/packages/7a/ab/541fd1f6b46b3840d5835eac65066cfc2be6029373a094867caf22014632/biotite-2.0.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:653398e5d020561250cb71fb1860432ec99ae3707042fe649909d53abae5229d", size = 41997458, upload-time = "2026-10-18T07:52:57.699Z" },
+    { url = "https://files.pythonhosted.org/packages/7a/86/3a915d48de2e8e5d046da73a9ec2d600e0640f3814bd19a2962463f5f193/biotite-2.0.0-cp312-cp312-win_amd64.whl", hash = "sha256:df5e26b5fe09f420801ee302706f1370ebe3062e5bd05c58c3b18d1eb708f4cf", size = 41776665, upload-time = "2026-10-18T07:53:00.271Z" },
 ]
 
 [[package]]
@@ -279,7 +279,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "arviz", marker = "extra == 'bayes'", specifier = ">=0.18,<1" },
-    { name = "biotite", specifier = ">=0.40,<2" },
+    { name = "biotite", specifier = ">=0.40,<3" },
     { name = "jinja2", specifier = ">=3.1,<4" },
     { name = "numpy", specifier = ">=1.26,<3" },
     { name = "pandas", specifier = ">=2.1,<3" },
