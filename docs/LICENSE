@@ -1,0 +1,23 @@
+Creative Commons Attribution 4.0 International (CC-BY-4.0)
+
+SPDX-License-Identifier: CC-BY-4.0
+
+Copyright (c) 2026 Samuel Mbote
+
+Everything under docs/, together with README.md, METHODS.md,
+PREREGISTRATION.md, DESIGN.md, REFERENCES.md and DATA.md, is licensed under
+the Creative Commons Attribution 4.0 International Licence. Source code is
+licensed separately under MIT; see the LICENSE file at the repository root.
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit, link to the licence, and
+indicate whether changes were made.
+
+Canonical licence text:
+  Human-readable summary: https://creativecommons.org/licenses/by/4.0/
+  Full legal code:        https://creativecommons.org/licenses/by/4.0/legalcode
+
+NOTE TO MAINTAINERS: the full legal code is referenced here rather than
+vendored because the build environment that created this file could not reach
+creativecommons.org. Vendor the verbatim text into this file when network
+access allows; do not paraphrase it.
