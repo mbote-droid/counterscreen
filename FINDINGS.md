@@ -143,3 +143,83 @@ pattern, and covered by a test. They are additions to the registered rule and
 are listed in the module docstring so they can be argued with. The alternative
 is to make the confidence level a key as well, at the cost of clumsier prose.
 Open for decision.
+
+---
+
+## F-5 · The M1 handle is 6.4 square angstrom of one oxygen, already bidentate to Arg114
+
+**Believed.** `CLAUDE.md` §4 defines M1, the direct electrostatic readout, as
+placing an Arg, Lys or His against "the carboxylate oxygens of Asp6 **not
+taken by Arg114**", calls it the highest expected value of the three
+mechanisms, and allocates it **9 of the 20 submissions** — the largest arm.
+§3.3 cautions that the carboxylate "is **not** a free solvent-exposed handle,
+and a naive 'place an Arg to salt-bridge it' strategy may have nowhere to
+reach", and §18 lists "the designable surface may be too small" as a risk.
+None of this was quantified.
+
+**Checked.** Measured directly on the prepared T+ target, 7OW6 with the TCR
+removed.
+
+Contacts to the Asp6 carboxylate, polar atoms within 3.6 Å:
+
+| Oxygen | Partners |
+|---|---|
+| OD1 | Arg114 NH1 (3.04 Å), Arg114 NH2 (3.34 Å) |
+| OD2 | Arg114 NH2 (2.95 Å), Gln70 NE2 (3.08 Å), Gln70 OE1 (3.58 Å) |
+
+Arg114 makes a **bidentate** salt bridge spanning both oxygens, and Gln70 caps
+OD2 in addition. **There is no carboxylate oxygen not taken by Arg114.**
+
+Solvent accessibility of the same atoms (Shrake-Rupley, 1.4 Å probe):
+
+| Atom | SASA |
+|---|---|
+| OD1 | **6.4 Å²** |
+| OD2 | **0.0 Å²** |
+| Asp6 whole residue | 19.0 Å² |
+
+A fully exposed aspartate side chain runs to roughly 100–120 Å², so Asp6 is
+about 85% buried. Across the whole peptide:
+
+| Position | 1 V | 2 V | 3 V | 4 G | 5 A | **6 D** | 7 G | 8 V | 9 G | 10 K |
+|---|---|---|---|---|---|---|---|---|---|---|
+| SASA (Å²) | 2.1 | 3.6 | 7.8 | 35.2 | 29.9 | **19.0** | 73.3 | 45.1 | 17.1 | 6.8 |
+
+Total peptide SASA is 239.8 Å².
+
+**Changed.** Three things follow, and the third is a decision rather than a
+record.
+
+1. **§3.3's caution is vindicated and sharpened.** The strategy it warned
+   against is not merely awkward; the target it names does not exist. M1 as
+   literally specified — contacting an oxygen not taken by Arg114 — cannot be
+   built. What remains available is 6.4 Å² of OD1, which is already accepting
+   a bidentate pair from Arg114, or competition with Gln70, whose contacts
+   (3.08 and 3.58 Å) are the weaker of the two.
+2. **The discriminating residue is among the least accessible on the
+   peptide.** Positions 7, 8, 4 and 5 are two to four times more exposed than
+   position 6. Any binder reading position 6 directly is reaching for the
+   hardest point on the surface, while the signal-free positions are the easy
+   ones — which is precisely the failure mode the counter-screen exists to
+   detect, since a binder that grips the accessible positions binds wild type
+   equally well.
+3. **The 9/5/4 allocation rests on an assumption the structure does not
+   support.** §4 calls M1 "where the hits probably are" and gives it nearly
+   half the submissions; §11's allocation is registered in
+   `PREREGISTRATION.md` §4 step 4. The measurement says M1 is the *hardest*
+   arm, not the most promising, and that M2 (composite readout of the
+   Asp6–Arg114–Gln70 surface, which is exactly the network measured above) and
+   M3 (conformational selection, which needs no contact with the carboxylate
+   at all) are better matched to what the surface offers.
+
+   This is registered, so it is not changed here. It is raised as a proposed
+   amendment. Note that the measurement does not make M1 impossible: 6.4 Å² is
+   small but not zero, and a binder may read the Asp6 environment without
+   touching the carboxylate. It makes M1 expensive per hit, which is an
+   argument about allocation, not about feasibility.
+
+**Caveats.** SASA is computed on the receptor-stabilised conformation with the
+TCR removed; the apo surface may differ, and `FINDINGS.md` F-1 shows the apo
+state has no coordinates there at all. Absolute SASA values depend on the
+radius set and probe size, so the comparison between positions is the robust
+part, not the individual numbers.
