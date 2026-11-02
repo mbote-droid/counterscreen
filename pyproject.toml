@@ -182,7 +182,7 @@ ignore_missing_imports = true
 minversion = "8.0"
 testpaths = ["tests"]
 # Operator scripts are importable by their tests without a path hack.
-pythonpath = ["scripts"]
+pythonpath = ["scripts", "tests/_helpers"]
 addopts = [
   "-ra",
   "--strict-markers",

@@ -53,6 +53,20 @@ class GateConfig:
     g0_chain_break_angstrom: float = 4.5
     # CLAUDE.md section 8, G0: Ramachandran outliers < 1%.
     g0_max_ramachandran_outlier_fraction: float = 0.01
+    # PREREGISTRATION.md section 3 registers G0 as "any clash", which is the
+    # rule; these fix what counts as one, and are implementation detail made
+    # explicit rather than buried in geometry/.
+    g0_clash_distance_angstrom: float = 2.0
+    # CLAUDE.md section 8, G0: "bond lengths and angles within standard
+    # tolerance", against ideal peptide geometry.
+    g0_bond_length_tolerance_angstrom: float = 0.1
+    g0_bond_angle_tolerance_degrees: float = 10.0
+    # A peptide bond is cis when omega is near zero; trans is near 180.
+    g0_cis_peptide_tolerance_degrees: float = 30.0
+    # S-S is about 2.05 A; this is the distance below which two cysteine SG
+    # atoms are treated as bonded. Used for the CLAUDE.md section 3.1 target
+    # disulfide assertion, not as a design filter.
+    g0_disulfide_max_angstrom: float = 2.5
     # CLAUDE.md section 8, G1: 2.0 A, Ca only, after Kabsch superposition.
     g1_max_scrmsd_angstrom: float = 2.0
     # CLAUDE.md section 8, G1: pLDDT >= 80 on the refolded prediction.
