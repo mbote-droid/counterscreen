@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use counterscreen, please cite it as below."
+title: counterscreen
+abstract: >-
+  Specificity-first protein binder design and evaluation: a
+  counter-screening pipeline with pre-registered gates, a negative control
+  panel, and claim checking against returned measurements.
+type: software
+authors:
+  - family-names: Mbote
+    given-names: Samuel
+version: 0.0.0
+license: MIT
+repository-code: "https://github.com/mbote-droid/counterscreen"
+url: "https://github.com/mbote-droid/counterscreen"
+keywords:
+  - protein-design
+  - specificity
+  - counter-screening
+  - structural-biology
+  - preregistration
+# Add on first tagged release:
+#   date-released: YYYY-MM-DD
+#   doi: 10.5281/zenodo.XXXXXXX   (Zenodo concept DOI)
