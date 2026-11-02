@@ -24,3 +24,14 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "docker"
+    ignore:
+      # The Python pin is deliberate and load-bearing: uv.lock is resolved
+      # for ==3.12.*, so a base-image bump to another minor breaks
+      # `uv sync --locked` outright. Dependabot proposed 3.12 -> 3.15 and CI
+      # caught it. Moving Python is a decision about the lockfile, not a
+      # dependency update, so it is made by hand across .python-version,
+      # requires-python, uv.lock and the Dockerfile together.
+      - dependency-name: "python"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
