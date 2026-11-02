@@ -1,0 +1,337 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "counterscreen"
+description = "Specificity-first protein binder design and evaluation."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12,<3.13"
+dynamic = ["version"]
+authors = [{ name = "Samuel Mbote" }]
+keywords = [
+  "protein-design",
+  "specificity",
+  "counter-screening",
+  "structural-biology",
+  "preregistration",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Typing :: Typed",
+]
+
+# Core runtime. Deliberately CPU-only and import-light: every heavyweight
+# model (RFdiffusion, ProteinMPNN, ESMFold2, Protenix, Boltz,
+# AF2-initial-guess) is driven as an external process behind an adapter, so
+# the package stays installable and fully testable on a CI runner with no GPU
+# and no network. See DESIGN.md section 1.
+dependencies = [
+  "numpy>=1.26,<3",          # geometry, score, biophys numerics
+  "scipy>=1.11,<2",          # optimisation and distributions
+  "pandas>=2.1,<3",          # results tables
+  "pydantic>=2.7,<3",        # typed config and the provenance manifest
+  "biotite>=0.40,<2",        # structure and sequence parsing
+  "pyyaml>=6,<7",            # campaign configuration
+  "jinja2>=3.1,<4",          # report rendering
+  "typer>=0.12,<1",          # command line surface
+  "statsmodels>=0.14,<1",    # pre-registered estimators and intervals
+]
+
+[project.optional-dependencies]
+# Full Bayesian rung of the pre-registered random-effects ladder. Optional
+# because the switch rule only reaches for it when the simpler rungs fail to
+# identify; CI never installs it.
+bayes = ["pymc>=5.16,<6", "arviz>=0.18,<1"]
+
+[project.scripts]
+counterscreen = "counterscreen.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/mbote-droid/counterscreen"
+Repository = "https://github.com/mbote-droid/counterscreen"
+Issues = "https://github.com/mbote-droid/counterscreen/issues"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "pytest-cov>=5",
+  "hypothesis>=6.100",       # tests/property
+  "mypy>=1.10",
+  "ruff>=0.5",
+  "import-linter>=2.0",      # makes DESIGN.md section 1 executable
+  "types-PyYAML>=6",
+  "pandas-stubs>=2.1",
+]
+
+[tool.hatch.version]
+path = "src/counterscreen/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/counterscreen"]
+
+# ---------------------------------------------------------------------------
+# Lint
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "F",     # pyflakes
+  "E", "W",# pycodestyle
+  "I",     # import sorting
+  "N",     # pep8-naming
+  "UP",    # pyupgrade
+  "ANN",   # missing annotations
+  "S",     # bandit
+  "BLE",   # blind except
+  "B",     # bugbear
+  "A",     # builtin shadowing
+  "C4",    # comprehensions
+  "DTZ",   # naive datetimes
+  "T10",   # stray breakpoints
+  "EM",    # exception messages
+  "ISC",   # implicit string concat
+  "ICN",   # import conventions
+  "G",     # logging format
+  "PIE",
+  "T20",   # no print; reports go through the report package
+  "PT",    # pytest style
+  "Q",
+  "RSE",
+  "RET",
+  "SLF",   # private member access
+  "SIM",
+  "TID",   # tidy imports
+  "TC",    # type-checking blocks
+  "ARG",   # unused arguments
+  "PTH",   # use pathlib
+  "PD",    # pandas-vet
+  "PL",    # pylint
+  "TRY",
+  "NPY",   # numpy legacy random, etc.
+  "PERF",
+  "FURB",
+  "RUF",
+  "D",     # docstrings
+]
+ignore = [
+  "D203",    # conflicts with D211
+  "D213",    # conflicts with D212
+  "ISC001",  # formatter owns this
+  "TRY003",  # long messages inline are fine alongside EM
+  "PLR0913", # scientific entry points legitimately take many parameters
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may assert, hard-code sample data, and skip docstrings.
+"tests/**" = ["S101", "D100", "D101", "D102", "D103", "D104", "ANN", "PLR2004", "SLF001"]
+# Scripts are operator-facing and may print.
+"scripts/**" = ["T20", "D100", "D103"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+# ---------------------------------------------------------------------------
+# Types
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+# scripts/ joins this list once it holds modules; mypy errors on an
+# extensionless directory.
+files = ["src", "tests"]
+strict = true
+# Beyond --strict: refuse silent escapes from the type system.
+warn_unreachable = true
+disallow_any_unimported = true
+disallow_any_decorated = true
+disallow_any_explicit = false   # numpy dtypes still need an occasional Any
+enable_error_code = [
+  "redundant-expr",
+  "truthy-bool",
+  "truthy-iterable",
+  "ignore-without-code",
+  "unused-awaitable",
+  "explicit-override",
+  "possibly-undefined",
+]
+pretty = true
+
+[[tool.mypy.overrides]]
+# Third-party packages that ship no usable stubs.
+module = ["biotite.*", "statsmodels.*", "scipy.*", "pymc.*", "arviz.*"]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+  "-ra",
+  "--strict-markers",
+  "--strict-config",
+  "--import-mode=importlib",
+]
+xfail_strict = true
+filterwarnings = ["error"]
+markers = [
+  "slow: takes more than a second; excluded from the default CI gate",
+  "gpu: needs a GPU and real model weights; never runs in CI",
+  "network: needs outbound network; never runs in CI",
+]
+
+[tool.coverage.run]
+source = ["src/counterscreen"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "@overload",
+]
+
+# ---------------------------------------------------------------------------
+# Architecture. Each contract below is one sentence of the DESIGN.md
+# section 1 dependency table, made executable. A boundary that is only
+# written down is a boundary that drifts.
+# ---------------------------------------------------------------------------
+[tool.importlinter]
+root_packages = ["counterscreen"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "core is the leaf every package may import"
+type = "forbidden"
+source_modules = ["counterscreen.core"]
+forbidden_modules = [
+  "counterscreen.targets", "counterscreen.generate", "counterscreen.sequence",
+  "counterscreen.fold", "counterscreen.geometry", "counterscreen.score",
+  "counterscreen.rank", "counterscreen.biophys", "counterscreen.evaluate",
+  "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "geometry is pure structural arithmetic"
+type = "forbidden"
+source_modules = ["counterscreen.geometry"]
+forbidden_modules = [
+  "counterscreen.targets", "counterscreen.generate", "counterscreen.sequence",
+  "counterscreen.fold", "counterscreen.score", "counterscreen.rank",
+  "counterscreen.biophys", "counterscreen.evaluate", "counterscreen.analyze",
+  "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "biophys takes K_D from any source and knows no model"
+type = "forbidden"
+source_modules = ["counterscreen.biophys"]
+forbidden_modules = [
+  "counterscreen.targets", "counterscreen.generate", "counterscreen.sequence",
+  "counterscreen.fold", "counterscreen.score", "counterscreen.rank",
+  "counterscreen.evaluate", "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "targets knows nothing downstream"
+type = "forbidden"
+source_modules = ["counterscreen.targets"]
+forbidden_modules = [
+  "counterscreen.generate", "counterscreen.sequence", "counterscreen.fold",
+  "counterscreen.score", "counterscreen.rank", "counterscreen.biophys",
+  "counterscreen.evaluate", "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "generate does not know about scoring"
+type = "forbidden"
+source_modules = ["counterscreen.generate"]
+forbidden_modules = [
+  "counterscreen.score", "counterscreen.rank", "counterscreen.biophys",
+  "counterscreen.evaluate", "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "sequence does not know about folding or scoring"
+type = "forbidden"
+source_modules = ["counterscreen.sequence"]
+forbidden_modules = [
+  "counterscreen.fold", "counterscreen.score", "counterscreen.rank",
+  "counterscreen.biophys", "counterscreen.evaluate", "counterscreen.analyze",
+  "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "fold does not know about gates or ranking"
+type = "forbidden"
+source_modules = ["counterscreen.fold"]
+forbidden_modules = [
+  "counterscreen.rank", "counterscreen.score", "counterscreen.biophys",
+  "counterscreen.evaluate", "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "score does not know how candidates were made"
+type = "forbidden"
+source_modules = ["counterscreen.score"]
+forbidden_modules = [
+  "counterscreen.generate", "counterscreen.sequence", "counterscreen.rank",
+  "counterscreen.evaluate", "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "rank does not know model internals"
+type = "forbidden"
+source_modules = ["counterscreen.rank"]
+forbidden_modules = [
+  "counterscreen.generate", "counterscreen.sequence", "counterscreen.fold",
+  "counterscreen.evaluate", "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "evaluate does not know the campaign's own designs"
+type = "forbidden"
+source_modules = ["counterscreen.evaluate"]
+forbidden_modules = [
+  "counterscreen.generate", "counterscreen.sequence", "counterscreen.targets",
+  "counterscreen.analyze", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "analyze runs only on returned data, not on design generation"
+type = "forbidden"
+source_modules = ["counterscreen.analyze"]
+forbidden_modules = [
+  "counterscreen.generate", "counterscreen.sequence", "counterscreen.targets",
+  "counterscreen.fold", "counterscreen.report",
+]
+
+[[tool.importlinter.contracts]]
+name = "nothing imports report"
+type = "forbidden"
+source_modules = [
+  "counterscreen.core", "counterscreen.targets", "counterscreen.generate",
+  "counterscreen.sequence", "counterscreen.fold", "counterscreen.geometry",
+  "counterscreen.score", "counterscreen.rank", "counterscreen.biophys",
+  "counterscreen.evaluate", "counterscreen.analyze",
+]
+forbidden_modules = ["counterscreen.report"]
