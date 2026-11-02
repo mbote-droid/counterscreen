@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+.env
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+coverage.xml
+htmlcov/
+
+# Scratch and run outputs. Nothing here is evidence.
+out/
+work/
+scratch/
+*.log
+
+# Model weights and downloaded databases. Checksummed in the provenance
+# manifest, never committed.
+weights/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.index
+foldseek_db/
+
+# Large third-party structure downloads. Prepared targets under
+# campaigns/*/targets/ ARE tracked; the raw mirror is not.
+data/pdb_mirror/
+
+# Notebook noise
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# NOTE: campaigns/*/results/raw/ and results/refit/ are deliberately NOT
+# ignored. Returned measurements are evidence and are committed, append-only.
+# See DESIGN.md section 1 and METHODS.md section 11.

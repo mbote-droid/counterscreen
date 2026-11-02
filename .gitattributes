@@ -1,0 +1,35 @@
+# Normalise text on commit, check out native.
+* text=auto
+
+# Keep LF in anything a Linux runner or a Kaggle container executes.
+*.py    text eol=lf
+*.sh    text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.toml  text eol=lf
+*.cff   text eol=lf
+*.md    text eol=lf
+Makefile text eol=lf
+Snakefile text eol=lf
+Dockerfile text eol=lf
+
+# Structure and sequence files are text, but diffs are noise. Keep them
+# byte-stable so checksums in the provenance manifest stay meaningful.
+*.pdb   text eol=lf -diff
+*.cif   text eol=lf -diff
+*.fasta text eol=lf -diff
+*.a3m   text eol=lf -diff
+
+# Binary.
+*.npz   binary
+*.npy   binary
+*.png   binary
+*.pdf   binary
+*.h5    binary
+
+# Lockfile: ours is generated, do not try to merge it.
+uv.lock merge=binary linguist-generated=true
+
+# Keep docs out of the language statistics; this is a Python repository.
+docs/**   linguist-documentation
+paper/**  linguist-documentation
