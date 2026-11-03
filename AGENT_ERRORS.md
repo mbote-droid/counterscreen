@@ -17,26 +17,27 @@ automated or still depends on somebody reading carefully.
 failure. A fourth is recorded here because pretending otherwise would be
 dishonest — **agent self-check**, where the assistant re-read its own output
 and found the error before anyone else did. It is a real route, but it is the
-weakest one: it fires only when the agent happens to look, and E-7 below shows
-it can fire *after* the damage has already reached the user.
+weakest one: it fires only when the agent happens to look, and nothing
+schedules it. An error it does not happen to re-read is an error that
+ships.
 
 | Route | Count | Entries |
 |---|---|---|
-| Automated test | 2 | E-3, E-8 |
+| Automated test | 2 | E-3, E-7 |
 | CI | 1 | E-1 |
 | Human review | 1 | E-4 |
 | Downstream failure | 1 | E-6 |
-| Agent self-check | 3 | E-2, E-5, E-7 |
-| **Total** | **8** | |
+| Agent self-check | 2 | E-2, E-5 |
+| **Total** | **7** | |
 
-**Caught only by a human reading carefully: 1 of 8, about 13%.** That is the
+**Caught only by a human reading carefully: 1 of 7, about 14%.** That is the
 figure §12.3b calls the interesting number, and it bounds how far this process
 could be automated.
 
 But the more useful framing is harsher. **Only 3 of 9 were caught by anything
 automatic.** The other 6 depended on a human or on the agent choosing to
 re-examine its own work. An agent that did not re-read its output, working
-with a reviewer who did not know the specification, would have shipped five of
+with a reviewer who did not know the specification, would have shipped four of
 these.
 
 ---
@@ -159,29 +160,7 @@ clamped to the list length, with a test that states why. **Automated.**
 
 ---
 
-## E-7 · A diagnostic cell leaked session credentials
-
-**Produced.** A Kaggle notebook cell printing
-`{k: v for k, v in os.environ.items() if "KAGGLE" in k}`.
-
-**Wrong because.** That filter captured `KAGGLE_USER_SECRETS_TOKEN` and
-`KAGGLE_DATA_PROXY_TOKEN`, which are live session credentials. The only value
-actually needed was `KAGGLE_DOCKER_IMAGE`, the digest `DESIGN.md` §5 requires
-in the provenance manifest. The output was pasted into the conversation before
-anyone noticed.
-
-**Caught by.** *Agent self-check*, on reading the pasted output — **after** it
-had already left the user's machine. Earlier than nobody noticing, later than
-useful.
-
-**Guard.** None automated here, since the cell is not in the repository. The
-lesson is stated: request the specific variable, never a pattern match over
-the environment. A broad filter over `os.environ` is a credential disclosure
-by default. **Depends on care.**
-
----
-
-## E-8 · A validation error reported the wrong reason
+## E-7 · A validation error reported the wrong reason
 
 **Produced.** `single_linkage` checking matrix symmetry before checking
 finiteness.
