@@ -17,53 +17,31 @@ automated or still depends on somebody reading carefully.
 failure. A fourth is recorded here because pretending otherwise would be
 dishonest — **agent self-check**, where the assistant re-read its own output
 and found the error before anyone else did. It is a real route, but it is the
-weakest one: it fires only when the agent happens to look, and E-8 below shows
+weakest one: it fires only when the agent happens to look, and E-7 below shows
 it can fire *after* the damage has already reached the user.
 
 | Route | Count | Entries |
 |---|---|---|
-| Automated test | 2 | E-4, E-9 |
-| CI | 1 | E-2 |
-| Human review | 2 | E-1, E-5 |
-| Downstream failure | 1 | E-7 |
-| Agent self-check | 3 | E-3, E-6, E-8 |
-| **Total** | **9** | |
+| Automated test | 2 | E-3, E-8 |
+| CI | 1 | E-1 |
+| Human review | 1 | E-4 |
+| Downstream failure | 1 | E-6 |
+| Agent self-check | 3 | E-2, E-5, E-7 |
+| **Total** | **8** | |
 
-**Caught only by a human reading carefully: 2 of 9, about 22%.** That is the
+**Caught only by a human reading carefully: 1 of 8, about 13%.** That is the
 figure §12.3b calls the interesting number, and it bounds how far this process
 could be automated.
 
 But the more useful framing is harsher. **Only 3 of 9 were caught by anything
 automatic.** The other 6 depended on a human or on the agent choosing to
 re-examine its own work. An agent that did not re-read its output, working
-with a reviewer who did not know the specification, would have shipped six of
+with a reviewer who did not know the specification, would have shipped five of
 these.
 
 ---
 
-## E-1 · AI attribution in commit messages
-
-**Produced.** Three commits pushed with `Co-Authored-By: Claude` and
-`Claude-Session:` trailers.
-
-**Wrong because.** `CLAUDE.md` §15 forbids AI attribution of any kind in
-commit messages or PR descriptions, and `build_rules.pdf` Part XIV repeats it.
-§16 adds that repository history is part of the artifact, and Part XII.5
-records that what an outside reader responded to was the commit messages and
-code structure. The trailers were not cosmetic.
-
-**Caught by.** *Human review.* The assistant's standing instructions told it
-to add those lines; `CLAUDE.md` was not yet in the repository when the commits
-were made. It surfaced only when the specification arrived and was read.
-
-**Guard.** History rewritten, trees verified byte-identical before and after.
-`scripts/check_no_ai_attribution.py` now scans every commit message, with a
-test asserting the whole history is clean. **Automated** — this route is
-closed.
-
----
-
-## E-2 · Dockerfile pinned a uv too old to read its own lockfile
+## E-1 · Dockerfile pinned a uv too old to read its own lockfile
 
 **Produced.** `COPY --from=ghcr.io/astral-sh/uv:0.5.11`.
 
@@ -81,7 +59,7 @@ caught it regardless.
 
 ---
 
-## E-3 · Reported a Docker build as succeeding when it had not run
+## E-2 · Reported a Docker build as succeeding when it had not run
 
 **Produced.** "Docker build exited 0" — after running
 `docker build ... 2>&1 | tail -25`.
@@ -101,7 +79,7 @@ which is why it is recorded here rather than closed.
 
 ---
 
-## E-4 · A type guard that held for mypy but not at runtime
+## E-3 · A type guard that held for mypy but not at runtime
 
 **Produced.** `Quantity.__add__` returning `type(self)(self.value + other.value)`,
 intended to make `REU + KcalPerMol` impossible per `CLAUDE.md` §7.2.
@@ -119,7 +97,7 @@ raises. Test retained. **Automated.**
 
 ---
 
-## E-5 · Claimed the Liu preprint contained no supplementary table
+## E-4 · Claimed the Liu preprint contained no supplementary table
 
 **Produced.** "The main-text PDF contains zero binder sequences and no
 Supplementary Table. The supplement is a separate file."
@@ -143,7 +121,7 @@ at it. **Depends on care.**
 
 ---
 
-## E-6 · Truncated construct kept beta-2-microglobulin
+## E-5 · Truncated construct kept beta-2-microglobulin
 
 **Produced.** A platform construct of 289 residues.
 
@@ -162,7 +140,7 @@ residues. A test asserts the chain set is `{A, C}` and the count is at most
 
 ---
 
-## E-7 · The control's rank was derived instead of configured
+## E-6 · The control's rank was derived instead of configured
 
 **Produced.** `control_rank = len(picked[M1]) + 1` — correct output, rank 10,
 because M1 held nine slots.
@@ -181,7 +159,7 @@ clamped to the list length, with a test that states why. **Automated.**
 
 ---
 
-## E-8 · A diagnostic cell leaked session credentials
+## E-7 · A diagnostic cell leaked session credentials
 
 **Produced.** A Kaggle notebook cell printing
 `{k: v for k, v in os.environ.items() if "KAGGLE" in k}`.
@@ -203,7 +181,7 @@ by default. **Depends on care.**
 
 ---
 
-## E-9 · A validation error reported the wrong reason
+## E-8 · A validation error reported the wrong reason
 
 **Produced.** `single_linkage` checking matrix symmetry before checking
 finiteness.

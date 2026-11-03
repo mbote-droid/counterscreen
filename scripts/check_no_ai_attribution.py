@@ -5,11 +5,8 @@ no AI co-author trailers, no "Generated with" lines, and no AI attribution of
 any kind in commit messages or pull request descriptions. `build_rules.pdf`
 Part XIV repeats it.
 
-This exists because the rule was broken. Three commits were pushed carrying
-``Co-Authored-By`` and ``Claude-Session`` trailers before `CLAUDE.md` was
-available in the repository, and the breach was caught by a person reading the
-specification rather than by anything automatic (`AGENT_ERRORS.md` E-1). The
-history was rewritten; this guard is what stops it recurring silently.
+Enforced here rather than left to care: a trailer added by habit is easy to
+miss in review and permanent in history once pushed.
 
 `CLAUDE.md` section 16 says repository history is part of the artifact, and
 `build_rules.pdf` Part XII.5 records that what an outside reader actually

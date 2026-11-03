@@ -314,8 +314,8 @@ design is scored.
 **Question.** Given that most errors in this build were *not* caught by tests,
 what class of guard actually works?
 
-**The evidence.** `AGENT_ERRORS.md` classifies nine errors by detection route.
-**Only 3 of 9 were caught by anything automatic.** Two were caught only by a
+**The evidence.** `AGENT_ERRORS.md` classifies eight errors by detection route.
+**Only 3 of 8 were caught by anything automatic.** Two were caught only by a
 person reading carefully; three by the assistant re-reading its own output,
 which is the weakest route because it fires only when the agent happens to
 look — and in one case fired *after* the output had already reached the user.
@@ -339,7 +339,7 @@ caught-by-review, applied forward rather than backward.
 attempt. mypy rejected `REU + KcalPerMol` statically while the runtime method
 duck-typed the mixture and added the numbers silently. The guard became real
 only when a test exercised it. **A constraint that holds only in the type
-checker is not a constraint on the running program** — recorded as E-4.
+checker is not a constraint on the running program** — recorded as E-3.
 
 ---
 
