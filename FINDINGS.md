@@ -223,3 +223,84 @@ TCR removed; the apo surface may differ, and `FINDINGS.md` F-1 shows the apo
 state has no coordinates there at all. Absolute SASA values depend on the
 radius set and probe size, so the comparison between positions is the robust
 part, not the individual numbers.
+
+---
+
+## F-6 · The only known discriminator never touches the carboxylate
+
+**Believed.** `CLAUDE.md` §4 motivates M1 from [R9]'s finding that
+discrimination on this neoantigen "proceeded through a salt bridge to the
+mutant aspartate", and §5.2 rule 5 says to calibrate the G3 peptide-contact
+threshold on the real TCR rather than guess it. How the 7OW6 TCR achieves
+discrimination had not been measured here.
+
+**Checked.** 7OW6 and 7OW5 carry the **same** engineered TCR — identical
+203-residue alpha and 246-residue beta sequences; the differing modelled
+lengths are disorder, not different constructs — bound to G12D and wild-type
+peptide respectively. That makes them a controlled pair.
+
+*What the TCR touches*, heavy atoms within 4.0 Å:
+
+| | Contacts |
+|---|---|
+| TCR → peptide | 29 |
+| TCR → HLA | 107 |
+| **Peptide-contact fraction** | **0.213** |
+
+Distributed across the peptide as:
+
+| Position | 1 V | 2 V | 3 V | 4 G | 5 A | **6 D** | 7 G | 8 V | 9 G | 10 K |
+|---|---|---|---|---|---|---|---|---|---|---|
+| TCR contacts | 0 | 0 | 0 | 1 | 2 | **1** | **18** | 4 | 3 | 0 |
+
+**The closest TCR atom to an Asp6 carboxylate oxygen is 7.51 Å.** The TCR does
+not engage the discriminating group at all. Its HLA contacts concentrate on
+the alpha-1 helix — Arg65 (23), Gln62 (16), Gln155 (12), Glu58, Thr73, Ala69 —
+and not on the Arg114/Gln70 pair that coordinates the aspartate.
+
+*What the substitution does to the peptide.* Superposing the two structures on
+the HLA alpha-1/alpha-2 platform (179 CA, RMSD 0.276 Å) and comparing peptide
+CA positions:
+
+| Position | 1 | 2 | 3 | 4 | 5 | **6** | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| CA shift (Å) | 0.12 | 0.13 | 0.11 | 0.04 | 0.26 | **0.96** | 0.78 | 0.51 | 0.64 | 0.33 |
+
+Positions 1–5 are static. The substitution displaces position 6 by about 1 Å
+and that displacement **propagates forward to positions 7–9**.
+
+**Changed.** The three observations compose into a mechanism, and it is not
+the one M1 describes.
+
+Position 6 carries the chemistry but is 85% buried with no free carboxylate
+oxygen (F-5). Positions 7–9 carry no sequence difference at all — they are
+identical between mutant and wild type — but they are the accessible ones
+(73.3, 45.1, 17.1 Å²) **and they move when position 6 changes**. The TCR reads
+exactly there: 18 of its 29 peptide contacts land on position 7, which shifts
+0.78 Å between the two complexes.
+
+So discrimination is available *indirectly*: read the geometry of the
+accessible positions, not the chemistry of the buried one. That is
+conformational selection, which is **M3**, read out at residues that are
+sequence-identical between the two targets. It is close to M2 in spirit but
+distinct in detail: the surface that differs is not the
+Asp6–Arg114–Gln70 network the TCR ignores, but the downstream backbone.
+
+**This strengthens the case for amending the 9/5/4 allocation** raised in F-5.
+The only worked solution to this exact discrimination problem uses the
+mechanism currently allocated four designs, and avoids the one allocated nine.
+
+**Caveats, which matter here.**
+- The same TCR binds **both** complexes. Poole et al. solved the pair to study
+  specificity; this is a high-affinity engineered receptor, not a clean
+  discriminator, so "how it binds" is better evidenced than "how it
+  discriminates".
+- A 0.96 Å CA shift is modest. At typical coordinate error it is perhaps three
+  to four times the noise, and the two structures are different crystals.
+- The G3 reference of 0.213 is from **one** TCR. §5.2 rule 5 asks for the
+  distribution across the TCR *and* the Liu binders; the latter have no
+  published sequences (F-3), so the threshold currently rests on a single
+  observation and should be reported as such.
+- [R9] reported salt-bridge discrimination on the **9-mer** on 9UV8, a
+  different peptide length and a different structure. These results do not
+  contradict it; they say it does not transfer to the 10-mer complex.
