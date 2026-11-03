@@ -372,3 +372,47 @@ For contrast, the same derivation applied to the other arms produced:
 M2 recovers the Asp6-Arg114-Gln70 network §4 names and adds Thr73, Asp77,
 Ile97, Trp147, Gln155 and Gln156, which the specification did not list. M3
 recovers exactly the propagating displacement of F-6.
+
+
+---
+
+## F-8 · The 1:1 adequacy test has no power on a steady-state isotherm
+
+**Believed.** `CLAUDE.md` §12.5 item 2 requires testing the 1:1 Langmuir
+assumption by inspecting fit residuals, and trying heterogeneous-ligand or
+two-state models where 1:1 fits badly. The implicit assumption was that
+residual inspection on the fitted isotherm would detect inadequacy.
+
+**Checked.** Implemented the Wald-Wolfowitz runs test on residual signs — it
+detects systematic curvature without needing an alternative model fitted —
+then measured its power directly. A synthetic two-site curve (60% of R_max at
+K_D 2 nM, 40% at 400 nM) was fitted as 1:1 at several series lengths:
+
+| Concentration points | Runs-test z | Flags 1:1 as inadequate |
+|---|---|---|
+| 8 | −1.44 | **no** |
+| 16 | −3.09 | yes |
+| 32 | −5.02 | yes |
+| 64 | −7.56 | yes |
+
+**Changed.** The diagnostic is sound but **cannot be applied where it was
+assumed to apply**. A typical SPR experiment uses five to eight
+concentrations, and at eight points a two-site curve differing this markedly
+from 1:1 goes undetected at α = 0.05. Reporting "residuals show no structure"
+from an eight-point isotherm would be a statement about statistical power, not
+about the binding model.
+
+The test therefore belongs on the **kinetic time-course residuals**, where a
+single sensorgram contributes hundreds of points, rather than on the
+steady-state isotherm. `METHODS.md` §8.2 should say which residuals were
+tested, and report the series length alongside any claim that the 1:1 fit was
+adequate.
+
+**A second limitation found in the same work.** Specificity ratios propagate
+uncertainty by the delta-method identity `sigma_ln(x) ~= sigma_x / x`, which
+is first order and degrades as relative error grows — accurate below roughly
+30% relative error, unreliable by 100%. Poorly determined fits need a
+bootstrap over residuals, or refitting with `ln K_D` as the parameter. The
+relative standard error is reported alongside every ratio so the regime is
+visible. Recorded here because a ratio interval that is itself unreliable is
+exactly the kind of number that reads as rigour without being it.
