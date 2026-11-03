@@ -9,6 +9,34 @@ Nothing here is a result about a design. These are findings about the
 
 ---
 
+## How strong is each finding, and what does it license
+
+Added because the distinction was being made in discussion and not on the
+record. A finding's evidence class governs what may be written from it, and a
+reader of a preprint cannot infer that from the finding alone.
+
+| | Evidence class | What it licenses | What it does **not** license |
+|---|---|---|---|
+| **F-1** | Direct observation, four independent copies | That the discriminating residue is experimentally undetermined in the apo state | Any claim about *why*, or about what a predictor does with it — that is the open question, not the answer |
+| **F-2** | Documentary, decisive | That [R11]'s accession is wrong and D3–D5 are unbuildable | Nothing about the Zhu structures themselves, which remain unread |
+| **F-3** | Direct count from published sequences | That the panel supplies one single-residue control against a floor of five | Nothing about whether the Liu binders work, which is their own paper's result |
+| **F-4** | Self-referential | That the registered rule rejects its own document | Nothing scientific |
+| **F-5** | Standard measurement, one structure | That M1's specified handle does not exist and Asp6 is largely buried | **Not a discovery.** `CLAUDE.md` §3.3 predicted this in prose; the contribution is quantifying it and acting before GPU spend. SASA and contact distances on a deposited structure are routine |
+| **F-6** | Controlled structural comparison | That the known discriminator reads accessible positions that move rather than the buried one that changes | **The substantive finding.** Still one receptor, one structure pair, and that receptor binds both complexes — so it evidences *how it binds* more strongly than *how it discriminates* |
+| **F-7** | Derivation from F-5 | That M1 reduces to a single target | A corollary of F-5, not independent evidence |
+
+**Ranked by what a reader should care about: F-6, then F-1, then the rest.**
+F-6 proposes a mechanism with a testable consequence — that a binder reading
+positions 7–9 geometry can discriminate without contacting position 6. F-1
+poses a question nobody has answered. F-5 and F-7 are engineering diligence:
+they corrected a plan before it cost anything, which is valuable to this
+project and not a contribution to the field.
+
+None of them is a result about a design. Nothing in this pipeline has been
+run.
+
+---
+
 ## F-1 · 7OW4 has no density at the discriminating residue, in all four copies
 
 **Believed.** The challenge page states that peptide positions 5 and 6 have no

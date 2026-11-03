@@ -233,6 +233,36 @@ Stated here rather than in an appendix.
 8. **Assay ceiling.** Independent wet-lab assays on identical designs have been reported to agree only 89% of the time [R14], which bounds the correlation any in-silico metric can achieve against experimental labels.
 8c. **Occupancy parameters.** pMHC copy numbers for this epitope on tumour and healthy tissue are not well established. §8.2b is a sensitivity analysis over an assumed range, not a prediction. Conclusions depend most strongly on `[FILL]`.
 8b. **Control panel composition.** `[FILL]` If the intended 18-binder panel [R10] could not be obtained and a VDJdb/IEDB substitute was used, the calibration is correspondingly weaker and the operating point less well determined.
+10. **Folding is assumed, not modelled.** Every structure predictor in this
+stack presupposes Anfinsen's thermodynamic hypothesis: that the native state
+is determined by the sequence and is the free-energy minimum under
+physiological conditions. Nothing here tests that assumption, models a folding
+pathway, or estimates a folding rate. The assumption is load-bearing in a
+specific way worth naming: a designed binder that is kinetically trapped, or
+that populates an alternative state, would be scored by this pipeline as
+though its predicted structure were its native one. The refolding filter at
+G1 (scRMSD, best of 8 ProteinMPNN sequences) is the only check in that
+direction, and it tests self-consistency of prediction, not foldability in
+reality. Expression failure in the returned data is the first point at which
+this assumption is tested at all, and §12.3 records that such failure censors
+binding labels informatively rather than at random.
+
+11. **Scope — what this pipeline does not model.** Stated explicitly because
+the omissions are deliberate rather than pending. It does not model folding
+kinetics, transition states, folding times, chaperone-assisted folding, or
+conformational dynamics beyond the single static pose each predictor returns.
+Molecular dynamics appears only as an optional local-minimisation fallback for
+interface energetics (§5), never in the design loop. The pipeline predicts no
+structure of its own: it orchestrates ESMFold, Protenix and Boltz and scores
+*differences* between their outputs, so its structural accuracy is theirs,
+inherited along with their failure modes — over-confidence on designed
+backbones, high pLDDT on non-binders [R16], and a reliability curve that
+inverts above 0.6 [R14]. Calibration is against a single target class: one
+HLA allele, one peptide length, one substitution. No claim of generalisation
+to other folds, to unusual kinetics, or to rare structural classes is made or
+supported, and the counter-screen objective is the only component offered as
+transferable.
+
 9. **Base rate.** Most de novo designs do not bind; a measured rate of 26.8% across an expert campaign spans 0% to 80% by target [R14]. pMHC is at the difficult end.
 
 ## 10. Claim discipline
