@@ -51,3 +51,8 @@ desktop.ini
 # NOTE: campaigns/*/results/raw/ and results/refit/ are deliberately NOT
 # ignored. Returned measurements are evidence and are committed, append-only.
 # See DESIGN.md section 1 and METHODS.md section 11.
+
+# Local builder brief. The scientific specification is PROTOCOL.md, which is
+# tracked; this file holds working instructions for the coding assistant and
+# stays out of the repository.
+CLAUDE.md

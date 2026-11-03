@@ -10,7 +10,7 @@ chosen after seeing the score distributions is a post-hoc decision disguised
 as a formula. There is no weights argument to pass, so the composite cannot
 be reintroduced by configuration.
 
-**delta-delta-G_spec is confined to M1 by construction.** `CLAUDE.md` section
+**delta-delta-G_spec is confined to M1 by construction.** `PROTOCOL.md` section
 7.2 gives the reason: in-place mutation with local repack measures loss of
 direct side-chain contact, which M3 does not operate through at all and M2
 operates through only unreliably. Used more widely it would systematically
@@ -29,8 +29,8 @@ just inside the tolerance becomes a single tie group, which a test
 demonstrates rather than hides.
 
 *Which pooled SD sets the tolerance.* The specification is not single-voiced.
-`CLAUDE.md` section 7.1 and `DESIGN.md` section 4 define pooled SD per design,
-across that design's seeds; `CLAUDE.md` section 10 and `PREREGISTRATION.md`
+`PROTOCOL.md` section 7.1 and `DESIGN.md` section 4 define pooled SD per design,
+across that design's seeds; `PROTOCOL.md` section 10 and `PREREGISTRATION.md`
 section 5 describe a campaign-level noise floor measured once from five
 identical Day-1 runs. The tolerance is therefore taken as an explicit
 argument, so this module imposes no answer and the caller supplies whichever
@@ -54,7 +54,7 @@ class RankEntry:
 
     ``ddg_spec`` is a ranking statistic, never an affinity. Rosetta reports
     Rosetta Energy Units and the open fallback reports kcal/mol; whichever
-    path was taken is recorded with the run, per `CLAUDE.md` section 7.3.
+    path was taken is recorded with the run, per `PROTOCOL.md` section 7.3.
     Higher is more specific for the mutant, since it is
     ``delta-G(binder.WT) - delta-G(binder.G12D)``.
     """

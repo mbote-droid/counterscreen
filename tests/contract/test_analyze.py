@@ -180,7 +180,7 @@ def test_a_fitted_curve_is_called_fitted() -> None:
 
 
 def test_an_unfittable_curve_clearing_the_shift_rule_is_its_own_class() -> None:
-    """CLAUDE section 12.5: this is where the interesting failures live."""
+    """PROTOCOL section 12.5: this is where the interesting failures live."""
     assert classify(None, SHIFT_THRESHOLD_PERCENT) is BindingCall.SHIFT_ONLY
     assert classify(None, 450.0) is BindingCall.SHIFT_ONLY
 

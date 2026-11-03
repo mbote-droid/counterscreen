@@ -1,6 +1,6 @@
 # PREREGISTRATION.md
 
-**Spec version 0.5** · 2 November 2026 · part of a five-file set: `CLAUDE.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
+**Spec version 0.5** · 2 November 2026 · part of a five-file set: `PROTOCOL.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
 
 **Commit this file before scoring any of your own designs. Do not edit it afterwards.** Corrections go in an appended amendments section with their own timestamps, never by rewriting what was registered.
 
@@ -81,7 +81,7 @@ Values produced by the G2 and G3 rules, recorded after Stage −1 and not editab
 2. Ties within `0.5 × pooled SD` of each other are broken by `M_pep`, descending
 3. Remaining ties broken by confidence against T+, descending
 
-**ΔΔG_spec enters the M1 ranking only**, as a tiebreak at position 4 for designs still tied after the above. It does **not** enter M2 or M3 ranking at any position, for the reason in `CLAUDE.md` §7.2.
+**ΔΔG_spec enters the M1 ranking only**, as a tiebreak at position 4 for designs still tied after the above. It does **not** enter M2 or M3 ranking at any position, for the reason in `PROTOCOL.md` §7.2.
 
 No weighted composite is used. A weighted sum would require choosing weights, and any weight chosen after seeing the score distributions is a post-hoc decision disguised as a formula.
 
@@ -99,7 +99,7 @@ Selection procedure, fixed in advance:
 
 Measured on Day 1 by running identical input **5 times** and recording the spread of each confidence metric. That measured spread defines the `pooled SD` used in G4.
 
-The repeat count is registered here rather than left open because the `2 × pooled SD` rule of G4, and therefore §2's pass condition, is measured against it: a repeat count chosen after seeing how noisy the metric turned out would set the noise floor to suit the result. Five is not a new decision — it is what `CLAUDE.md` §10 and `DESIGN.md` §5 already specify for the same measurement.
+The repeat count is registered here rather than left open because the `2 × pooled SD` rule of G4, and therefore §2's pass condition, is measured against it: a repeat count chosen after seeing how noisy the metric turned out would set the noise floor to suit the result. Five is not a new decision — it is what `PROTOCOL.md` §10 and `DESIGN.md` §5 already specify for the same measurement.
 
 Measured value: `[FILL]`
 
@@ -134,7 +134,7 @@ Positive controls: `[RECORD n]` · failures: `[RECORD]` · upper bound: `[RECORD
 
 ## 5b. Evaluation study stop rule
 
-`CLAUDE.md` §12.2 is the headline deliverable, and it currently rests on the unquantified assumption that enough public mutant-versus-wild-type discrimination labels exist. Registered in advance:
+`PROTOCOL.md` §12.2 is the headline deliverable, and it currently rests on the unquantified assumption that enough public mutant-versus-wild-type discrimination labels exist. Registered in advance:
 
 | Requirement | Minimum |
 |---|---|
@@ -189,7 +189,7 @@ Any analysis not listed here and performed later is labelled **post hoc** in all
 
 ## 7b. Adversarial sample size, registered before running
 
-`CLAUDE.md` §12.4b level 2 and `METHODS.md` §8.5 require a false-accept rate with an interval but registered no n, which would leave the width of that interval — the result itself — to be settled after seeing how many adversarial designs were accepted.
+`PROTOCOL.md` §12.4b level 2 and `METHODS.md` §8.5 require a false-accept rate with an interval but registered no n, which would leave the width of that interval — the result itself — to be settled after seeing how many adversarial designs were accepted.
 
 | Adversarial class | n |
 |---|---|
@@ -216,13 +216,13 @@ commit earlier, so every change is visible as a diff against it.
 
 | # | Section | Change | Reason |
 |---|---|---|---|
-| A1 | §3, §4b | **G5 registered as a hydrophobic patch gate**, as a derivation rule from the positive control panel | §4b registered a negative control — the deliberately greasy surface — that had to fail at a "hydrophobic patch check", and no such gate existed anywhere in G0–G9. A registered control with no failure point cannot fail as designed, so the diagnostic-code discipline of `CLAUDE.md` §5.4 was unenforceable for that control. G5 was vacant: it was emptied in v0.3 when ΔΔG_spec was demoted to a ranking feature, so the number is reused and the gate list stays contiguous. Placed after G1 in the ordering because it is CPU and costs seconds |
+| A1 | §3, §4b | **G5 registered as a hydrophobic patch gate**, as a derivation rule from the positive control panel | §4b registered a negative control — the deliberately greasy surface — that had to fail at a "hydrophobic patch check", and no such gate existed anywhere in G0–G9. A registered control with no failure point cannot fail as designed, so the diagnostic-code discipline of `PROTOCOL.md` §5.4 was unenforceable for that control. G5 was vacant: it was emptied in v0.3 when ΔΔG_spec was demoted to a ranking feature, so the number is reused and the gate list stays contiguous. Placed after G1 in the ordering because it is CPU and costs seconds |
 | A2 | §4 step 2 | **Clustering threshold registered** as single-linkage at TM-score ≥ 0.5 | It was `[FILL]`, inside the registered selection procedure. A threshold left blank in a pre-registration is chosen after seeing the score distributions, which is the thing this document exists to prevent. TM-score 0.5 is the conventional same-fold boundary and reuses the machinery already registered for G9 |
 | A3 | §7 | **Primary estimator replaced by a three-rung ladder with a switch rule** | `binds ~ margin + (1 + margin \| target)` estimates a 2×2 random-effects covariance from as few as 4 targets, which §5b explicitly permits. At that n it will commonly return a singular fit or fail to converge. Without a registered descent, the fallback would be chosen after watching the fit misbehave, and a singular fit might be reported as though it were the registered primary analysis |
-| A4 | new §7b | **Adversarial sample size registered**: 10 per class, 40 total, Wilson or rule of three | `CLAUDE.md` §12.4b and `METHODS.md` §8.5 required a false-accept rate with an interval but registered no n. The width of that interval is the headline result, so an unregistered n would let it be tuned after seeing how many designs were accepted |
+| A4 | new §7b | **Adversarial sample size registered**: 10 per class, 40 total, Wilson or rule of three | `PROTOCOL.md` §12.4b and `METHODS.md` §8.5 required a false-accept rate with an interval but registered no n. The width of that interval is the headline result, so an unregistered n would let it be tuned after seeing how many designs were accepted |
 | A7 | §4 step 4 | **Allocation changed from M1 = 9, M2 = 5, M3 = 4 to M1 = 4, M2 = 5, M3 = 9** | Measured on the prepared targets before any design was generated. `FINDINGS.md` F-5: Arg114 is bidentate across both Asp6 carboxylate oxygens at 2.95 Å and 3.04 Å and Gln70 caps OD2, so the oxygen M1 was defined to reach does not exist; OD1 exposes 6.4 Å² and OD2 zero, with Asp6 about 85% buried. F-6: the same engineered TCR in 7OW6 and 7OW5 comes no closer than 7.51 Å to the carboxylate, places 18 of its 29 peptide contacts on position 7, and the substitution displaces position 6 by 0.96 Å propagating 0.78, 0.51 and 0.64 Å to positions 7–9 while positions 1–5 stay within 0.26 Å. The only worked solution to this discrimination problem is conformational, which is M3. Allocating nine designs to the arm whose handle is 6.4 Å² and four to the arm the evidence supports inverted the expected value. M2 is unchanged at 5, because the evidence for it is weaker in both directions: the TCR ignores the Asp6–Arg114–Gln70 network M2 targets |
-| A8 | `CLAUDE.md` §4 | **M1 redefined** | Its original wording — a donor contacting "the carboxylate oxygens of Asp6 not taken by Arg114" — names an empty set. M1 now targets the 6.4 Å² solvent-accessible face of OD1, or displacement of the weaker Gln70 contacts, and records that Arg114 is not displaceable. The arm is retained rather than deleted because 6.4 Å² is small but not zero and a binder may read the Asp6 environment without contacting the carboxylate; the change is to its definition and its expected value, not its feasibility |
-| A6 | §5 | **Noise-floor repeat count set to 5**, matching `CLAUDE.md` §10 and `DESIGN.md` §5 | §5 left the repeat count as `[N]` while both companion files already specified five identical runs for the same measurement. Left open it would be a free parameter underneath G4 and §2, since the measured spread defines the `pooled SD` both depend on: a repeat count chosen after seeing the noise would set the floor to suit the result. Alignment with the registered value, not a new choice |
+| A8 | `PROTOCOL.md` §4 | **M1 redefined** | Its original wording — a donor contacting "the carboxylate oxygens of Asp6 not taken by Arg114" — names an empty set. M1 now targets the 6.4 Å² solvent-accessible face of OD1, or displacement of the weaker Gln70 contacts, and records that Arg114 is not displaceable. The arm is retained rather than deleted because 6.4 Å² is small but not zero and a binder may read the Asp6 environment without contacting the carboxylate; the change is to its definition and its expected value, not its feasibility |
+| A6 | §5 | **Noise-floor repeat count set to 5**, matching `PROTOCOL.md` §10 and `DESIGN.md` §5 | §5 left the repeat count as `[N]` while both companion files already specified five identical runs for the same measurement. Left open it would be a free parameter underneath G4 and §2, since the measured spread defines the `pooled SD` both depend on: a repeat count chosen after seeing the noise would set the floor to suit the result. Alignment with the registered value, not a new choice |
 | A5 | §2 | **Stage −1 pass/fail rule rewritten parameter-free** | §2 carried four `[N]` placeholders while §3, three paragraphs later, argued that registering a threshold as `[FILL]` means choosing it after seeing data, "which is exactly where a pre-registration most needs to bind". §2 is the rule that decides whether the neural arm proceeds at all, so it needed that discipline most. Now expressed through quantities already registered — the G4 rule — plus stated conventions |
 
 Changes made in the companion files at the same time, recorded here because
@@ -230,9 +230,9 @@ they follow from the amendments above:
 
 | Section | Change |
 |---|---|
-| `CLAUDE.md` §8 | G5 row replaced; §5.4 diagnostic table now names G5 |
-| `CLAUDE.md` §12.2 | Identifiability of the random-slope model stated, pointing at the §7 ladder |
-| `METHODS.md` §8.7 | **G5 and G8 added to the funnel.** G8 was a live gate in `CLAUDE.md` §8 and §3 here, but had no funnel row, so the stage-to-stage consistency test `DESIGN.md` §8 requires would have been written against an incomplete funnel |
+| `PROTOCOL.md` §8 | G5 row replaced; §5.4 diagnostic table now names G5 |
+| `PROTOCOL.md` §12.2 | Identifiability of the random-slope model stated, pointing at the §7 ladder |
+| `METHODS.md` §8.7 | **G5 and G8 added to the funnel.** G8 was a live gate in `PROTOCOL.md` §8 and §3 here, but had no funnel row, so the stage-to-stage consistency test `DESIGN.md` §8 requires would have been written against an incomplete funnel |
 | `METHODS.md` §8.1, §8.5 | Estimator ladder and registered adversarial n reflected in the write-up |
 | `DESIGN.md` §8b | Gate ordering diagram now places G5 after G1, before any co-folding |
 | `README.md` | Licence resolved: MIT for code, CC-BY-4.0 for documentation |

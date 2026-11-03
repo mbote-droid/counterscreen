@@ -1,6 +1,6 @@
 """Mass-action occupancy, and what a K_D ratio actually buys in a cell.
 
-`CLAUDE.md` section 12.6 makes the argument this module exists for. The
+`PROTOCOL.md` section 12.6 makes the argument this module exists for. The
 competition ranks on K_D and K_D ratios, and neither answers whether a binder
 would be *useful*. Wild-type KRAS is presented across healthy tissue while
 G12D is confined to tumour cells, so the ratio a cell experiences is not
@@ -13,9 +13,9 @@ presentation density:
 
 The consequence section 12.6 draws is the point of the whole module: a design
 with a hundredfold K_D ratio can have a selectivity index near or below 1 once
-presentation density is accounted for. That is a real therapeutic constraint
-the competition ranking does not capture, and a test here reproduces it
-numerically rather than restating it.
+presentation density is accounted for. That is a real therapeutic constraint that no ranking
+on affinity ratios can capture, and a test here reproduces it numerically
+rather than restating it (`PROTOCOL.md` §12.6).
 
 **Copy numbers must arrive as a range, never as a value.** `DESIGN.md`
 section 8 registers that as an assertion this package has to satisfy, and
@@ -47,7 +47,7 @@ class OccupancyError(ValueError):
 class CopyNumberRange:
     """A range of presented complexes per cell.
 
-    Refuses a degenerate range on purpose. `CLAUDE.md` section 12.6 requires
+    Refuses a degenerate range on purpose. `PROTOCOL.md` section 12.6 requires
     a sensitivity analysis over a stated range and explicitly not a point
     prediction, so collapsing the range is not a valid way to ask this
     question.
@@ -64,7 +64,7 @@ class CopyNumberRange:
         if self.high <= self.low:
             msg = (
                 f"copy numbers must span a range, got low={self.low} high={self.high}. "
-                "CLAUDE.md section 12.6 requires a sensitivity analysis, not a point "
+                "PROTOCOL.md section 12.6 requires a sensitivity analysis, not a point "
                 "prediction: presentation density for this epitope is not well established"
             )
             raise OccupancyError(msg)
@@ -119,7 +119,7 @@ def competitive_occupancy(
 def kd_for_occupancy(binder: Molar, target_occupancy: float) -> Molar:
     """Return the K_D needed to reach an occupancy at a given concentration.
 
-    Answers item 2 of `CLAUDE.md` section 12.6: what affinity is actually
+    Answers item 2 of `PROTOCOL.md` section 12.6: what affinity is actually
     required for meaningful occupancy at plausible neoantigen copy numbers.
     """
     if not 0.0 < target_occupancy < 1.0:
@@ -132,7 +132,7 @@ def kd_for_occupancy(binder: Molar, target_occupancy: float) -> Molar:
 class SelectivitySurface:
     """Selectivity index over a grid of presentation densities.
 
-    Reported as a surface rather than a value, per `CLAUDE.md` section 12.6.
+    Reported as a surface rather than a value, per `PROTOCOL.md` section 12.6.
     ``values[i, j]`` is the index at ``mutant_copies[i]`` and
     ``wild_type_copies[j]``.
     """
@@ -183,8 +183,8 @@ def selectivity_surface(
     """Compute selectivity in bound complexes per cell, over a density range.
 
     The K_D ratio and the occupancy ratio are carried alongside so a report can
-    show the gap between what the competition ranks on and what a cell would
-    experience.
+    show the gap between the affinity ratio and the selectivity a cell would
+    actually experience.
     """
     theta_mutant = occupancy(binder, kd_mutant)
     theta_wild_type = occupancy(binder, kd_wild_type)

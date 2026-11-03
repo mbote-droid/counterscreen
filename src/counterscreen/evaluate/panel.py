@@ -1,17 +1,17 @@
 """The Stage -1 control panel: what it is made of, and what it may not contain.
 
-`CLAUDE.md` section 5 makes Stage -1 a falsification check run before anything
+`PROTOCOL.md` section 5 makes Stage -1 a falsification check run before anything
 else: determine whether the chosen metrics can resolve a single-residue
 epitope change *at all*. If they cannot, the neural arm is blind and the
 pipeline falls back to physics. Cost is a few hours; it can invalidate the
 approach on day one, and that property is the point.
 
 **The initial-guess trap is enforced here, not documented here.** `DESIGN.md`
-section 3 and `CLAUDE.md` section 5.2 both say controls must run exactly as
+section 3 and `PROTOCOL.md` section 5.2 both say controls must run exactly as
 designs will run, because seeding a control with its crystal pose leaks the
 answer and makes calibration meaningless. `DESIGN.md` section 3 is explicit
 that this should be encoded as a test rather than a comment, and
-`CLAUDE.md` section 12.4b registers "return the crystal pose as a control
+`PROTOCOL.md` section 12.4b registers "return the crystal pose as a control
 seed" as a mutant a provenance assertion must kill. So a control carrying
 :attr:`SeedProvenance.CRYSTAL` is refused by :func:`validate_panel`, and the
 panel cannot be assembled around it.
@@ -44,7 +44,7 @@ class PanelError(ValueError):
 
 
 class ControlRole(enum.StrEnum):
-    """What a control is for, per `CLAUDE.md` section 5.1."""
+    """What a control is for, per `PROTOCOL.md` section 5.1."""
 
     POSITIVE = "positive"
     NEGATIVE = "negative"
@@ -99,7 +99,7 @@ class Control:
         if self.role is ControlRole.NEGATIVE and self.expected_gate is None:
             msg = (
                 f"negative control {self.name!r} has no registered failure gate. "
-                "CLAUDE.md section 5.4: a flawed design that fails for the wrong "
+                "PROTOCOL.md section 5.4: a flawed design that fails for the wrong "
                 "reason is a gate working by accident"
             )
             raise PanelError(msg)
@@ -160,7 +160,7 @@ def validate_panel(controls: Sequence[Control]) -> None:
     if leaked:
         msg = (
             f"controls seeded from crystal poses: {sorted(leaked)}. "
-            "CLAUDE.md section 5.2: controls must run exactly as designs will run; "
+            "PROTOCOL.md section 5.2: controls must run exactly as designs will run; "
             "seeding from the deposited pose leaks the answer"
         )
         raise PanelError(msg)

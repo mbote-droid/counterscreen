@@ -1,6 +1,6 @@
 """Independent re-fitting of returned sensorgrams.
 
-`CLAUDE.md` §12.5 is clear that the returned binary call is not the terminal
+`PROTOCOL.md` §12.5 is clear that the returned binary call is not the terminal
 output. Adaptyv has noted that its standard fit assumes a **1:1 interaction**
 and that further fitting models were being added [R26], and the challenge
 counts binding either as a fittable curve with a K_D **or**, where the curve
@@ -76,7 +76,7 @@ class RefitError(ValueError):
 
 
 class BindingCall(StrEnum):
-    """How a curve was classified, per `CLAUDE.md` §3.5."""
+    """How a curve was classified, per `PROTOCOL.md` §3.5."""
 
     FITTED = "fitted"
     SHIFT_ONLY = "shift_only"

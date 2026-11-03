@@ -1,8 +1,8 @@
 # DESIGN.md — Architecture and Engineering Decisions
 
-**Spec version 0.5** · 2 November 2026 · part of a five-file set: `CLAUDE.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
+**Spec version 0.5** · 2 November 2026 · part of a five-file set: `PROTOCOL.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
 
-Companion to `CLAUDE.md`. That file says *what* to build and *why it matters scientifically*. This file says *how it works* and records the engineering decisions, including the ones forced by constraints rather than chosen freely.
+Companion to `PROTOCOL.md`. That file says *what* to build and *why it matters scientifically*. This file says *how it works* and records the engineering decisions, including the ones forced by constraints rather than chosen freely.
 
 ---
 
@@ -76,7 +76,7 @@ This is the single decision that makes the compute budget feasible. It is also d
 
 ## 3. Model stack and why it is tiered
 
-See `CLAUDE.md` §6 for the scientific rationale. Engineering notes:
+See `PROTOCOL.md` §6 for the scientific rationale. Engineering notes:
 
 | Tier | Model | Engineering risk |
 |---|---|---|
@@ -96,7 +96,7 @@ Encode this as a test, not a comment. `evaluate/` should refuse to run a control
 
 ### Ensemble as a measured question
 
-The stack combines models that fail differently. Whether that actually helps is tested, not assumed — see `CLAUDE.md` §6 and [R14]. Implement single-model and ensemble scoring as two selectable ranking functions and report both on the control panel.
+The stack combines models that fail differently. Whether that actually helps is tested, not assumed — see `PROTOCOL.md` §6 and [R14]. Implement single-model and ensemble scoring as two selectable ranking functions and report both on the control panel.
 
 ---
 
@@ -144,7 +144,7 @@ Whichever path is taken, record it and the reason in `METHODS.md`. The fallback 
 
 ### ΔΔG_spec is a ranking feature, not a gate
 
-See `CLAUDE.md` §7.2. Implementation consequence: `rank/` must accept per-arm scoring configuration. The M1 arm uses ΔΔG_spec in its composite; M2 and M3 record it but do not weight it. Hard-coding one composite across all arms would reintroduce the bug v0.3 removed.
+See `PROTOCOL.md` §7.2. Implementation consequence: `rank/` must accept per-arm scoring configuration. The M1 arm uses ΔΔG_spec in its composite; M2 and M3 record it but do not weight it. Hard-coding one composite across all arms would reintroduce the bug v0.3 removed.
 
 ---
 
@@ -187,7 +187,7 @@ For GPU stages, CI asserts that confidence metrics reproduce within a stated tol
 
 ## 6. Compute strategy
 
-See `CLAUDE.md` §10. Engineering requirements:
+See `PROTOCOL.md` §10. Engineering requirements:
 
 - **Benchmark before planning.** The Day-1 benchmark writes `benchmarks/day1_gpu_benchmark.md` with measured seconds per prediction for each model and construct size. All budgets derive from that file, not from estimates.
 - **Checkpoint everything.** Kaggle sessions drop. Every stage writes its outputs to disk and is restartable from the last completed unit of work, not from the start of the stage.
@@ -208,10 +208,10 @@ See `CLAUDE.md` §10. Engineering requirements:
 
 ## 7. Selection
 
-1. Apply hard gates (`CLAUDE.md` §8). Log every rejection with its failing gate — rejection counts per gate are a reportable result.
+1. Apply hard gates (`PROTOCOL.md` §8). Log every rejection with its failing gate — rejection counts per gate are a reportable result.
 2. Within each mechanism arm, cluster by structural similarity.
 3. Take cluster representatives, not top-N by score.
-4. Fill the allocation in `CLAUDE.md` §11.
+4. Fill the allocation in `PROTOCOL.md` §11.
 5. Insert the affinity-only control at approximately rank 10.
 6. Run `binder-prescreen`; any flag other than `pass` removes the design and the next cluster representative is promoted.
 
@@ -229,7 +229,7 @@ See `CLAUDE.md` §10. Engineering requirements:
 | Fixture | Known small complexes with recorded expected outputs, CPU-only, bit-exact |
 | Tolerance | GPU stages against recorded references within measured bands |
 | Leakage | **Assert no target appears in both train and test splits** in `evaluate/`. This is a test, not a convention |
-| **Mutation, code** | Deliberate one-line defects must each kill a test. Report the mutation score. Mutant set in `CLAUDE.md` §12.4b |
+| **Mutation, code** | Deliberate one-line defects must each kill a test. Report the mutation score. Mutant set in `PROTOCOL.md` §12.4b |
 | **Mutation, designs** | Scrambled, alanine-mutated and decoy-swapped designs pushed through the full ranking; measured false-accept rate with interval |
 | Provenance | Assert `evaluate/` refuses controls seeded from crystal poses |
 | Immutability | Assert `analyze/` never writes to `results/raw/` |
@@ -246,7 +246,7 @@ The last two are the ones that protect the scientific claims. Treat them as load
 
 ## 9. What this architecture deliberately does not do
 
-Cross-referenced with `CLAUDE.md` §14. Engineering-specific exclusions:
+Cross-referenced with `PROTOCOL.md` §14. Engineering-specific exclusions:
 
 - **No service layer, no API, no web UI.** This is a batch pipeline. Adding a server adds failure modes and demonstrates nothing.
 - **No database.** Files on disk with content-addressed names. The dataset is small and files are inspectable.

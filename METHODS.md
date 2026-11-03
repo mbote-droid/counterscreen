@@ -1,6 +1,6 @@
 # METHODS.md — Scientific Write-Up
 
-**Spec version 0.5** · 2 November 2026 · part of a five-file set: `CLAUDE.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
+**Spec version 0.5** · 2 November 2026 · part of a five-file set: `PROTOCOL.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
 
 **Status: template.** Sections marked `[FILL]` are completed as the campaign runs. This file is both the submission methods document and the basis for later publication.
 

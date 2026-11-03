@@ -1,4 +1,4 @@
-"""Gate contract (CLAUDE.md section 12.4b): a gate must never be silently skipped."""
+"""Gate contract (PROTOCOL.md section 12.4b): a gate must never be silently skipped."""
 
 import pytest
 

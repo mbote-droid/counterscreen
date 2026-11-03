@@ -1,6 +1,6 @@
 # AGENT_ERRORS.md — where the assistant got it wrong
 
-`CLAUDE.md` §12.3b requires this file, and gives the reason: publishing agent
+`PROTOCOL.md` §12.3b requires this file, and gives the reason: publishing agent
 failures alongside agent successes is becoming the expected standard, and it
 is precisely the competence AI-evaluation employers hire for. The precedent is
 the Mithril Medicine programme, where six assistant errors were documented
@@ -83,7 +83,7 @@ which is why it is recorded here rather than closed.
 ## E-3 · A type guard that held for mypy but not at runtime
 
 **Produced.** `Quantity.__add__` returning `type(self)(self.value + other.value)`,
-intended to make `REU + KcalPerMol` impossible per `CLAUDE.md` §7.2.
+intended to make `REU + KcalPerMol` impossible per `PROTOCOL.md` §7.2.
 
 **Wrong because.** mypy rejected the mixture statically, but at runtime the
 method duck-typed any `Quantity` and silently added the two numbers. A value
@@ -147,7 +147,7 @@ residues. A test asserts the chain set is `{A, C}` and the count is at most
 because M1 held nine slots.
 
 **Wrong because.** It coupled a registered placement to an unrelated number.
-`CLAUDE.md` §11 asks for the affinity-only control at approximately rank 10
+`PROTOCOL.md` §11 asks for the affinity-only control at approximately rank 10
 *so that it is still tested if only part of the list is selected*. The rank
 happened to be right; the reason it was right was accidental.
 

@@ -1,4 +1,4 @@
-"""Commit messages must carry no AI attribution (CLAUDE.md section 15)."""
+"""Commit messages carry the author's name alone, with no tool attribution."""
 
 import subprocess
 from pathlib import Path

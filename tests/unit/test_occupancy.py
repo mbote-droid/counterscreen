@@ -41,7 +41,7 @@ def test_occupancy_rises_with_concentration() -> None:
     assert values == sorted(values)
 
 
-def test_competition_reduces_to_single_site_when_nothing_competes() -> None:
+def test_competitive_binding_reduces_to_single_site_when_nothing_competes() -> None:
     """A property, not a coincidence: the competitive form must contain the simple one."""
     for concentration in (0.1, 1.0, 10.0, 100.0):
         assert competitive_occupancy(
@@ -98,7 +98,7 @@ def test_a_range_grids_across_its_span() -> None:
     assert np.all(np.diff(grid) > 0)
 
 
-# --- The claim CLAUDE section 12.6 makes ------------------------------------
+# --- The claim PROTOCOL section 12.6 makes ------------------------------------
 
 
 def test_a_hundredfold_kd_ratio_can_still_be_unselective_in_a_cell() -> None:

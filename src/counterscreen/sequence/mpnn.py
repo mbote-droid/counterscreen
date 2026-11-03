@@ -1,6 +1,6 @@
 """ProteinMPNN invocation: sequences onto a backbone, and what must not change.
 
-`CLAUDE.md` §9 stage 2 fixes the sampling: eight sequences per backbone at
+`PROTOCOL.md` §9 stage 2 fixes the sampling: eight sequences per backbone at
 T = 0.1. Gate G1 then takes the best of those eight, so the count is part of
 the gate's definition rather than a tuning knob — asking for four would change
 what G1 means while appearing only to change a parameter. Both values come

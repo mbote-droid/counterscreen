@@ -1,9 +1,9 @@
 """Numeric provenance: no number is typed by hand into a generated document.
 
 `DESIGN.md` section 9b states this as a constraint rather than a preference,
-and gives the reason: `METHODS.md` is a scored input to the competition, a
-stale or mistyped number there costs directly, and hand-copying results from a
-terminal into prose is how stale numbers happen.
+and gives the reason: hand-copying results from a terminal into prose is how
+stale numbers reach a manuscript, and a number that no longer matches the run
+that produced it is indistinguishable from one that was never computed.
 
 Every numeric claim is written as a key:
 
@@ -16,7 +16,7 @@ no matching entry, a bare numeral outside a key, and a result file newer than
 the document it supposedly produced.
 
 The payoff is a sentence the methods can carry honestly -- *every number in
-this report resolves mechanically to a result file* -- which a judge can
+this report resolves mechanically to a result file* -- which any reader can
 verify rather than take on trust.
 
 **Exclusions beyond what section 9b specifies.** The registered rule names

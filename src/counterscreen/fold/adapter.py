@@ -14,7 +14,7 @@ week and co-folding at 60-120 s a prediction, that is not a rounding error.
 :func:`fold` refuses an unstamped design, and refuses one G0 rejected.
 
 **Whether the objective has an input at all is decided here.**
-`CLAUDE.md` section 7.1 scores on "ipSAE or the model's equivalent", and
+`PROTOCOL.md` section 7.1 scores on "ipSAE or the model's equivalent", and
 section 10 flags that this is unresolved: ipSAE is a derived quantity, and
 Protenix or Boltz may emit PAE, pTM and ipTM without emitting ipSAE itself.
 `SETUP.md` section 5 makes it the pass condition that decides the project --
@@ -65,7 +65,7 @@ def objective_has_an_input(emits: frozenset[ConfidenceMetric]) -> bool:
     """Whether a model's output can feed the specificity margin.
 
     The pass condition of `SETUP.md` section 5. If this is false for every
-    model in the stack, `CLAUDE.md` section 7.1 has nothing to score and the
+    model in the stack, `PROTOCOL.md` section 7.1 has nothing to score and the
     plan must change before Day 2 rather than be worked around.
     """
     return ConfidenceMetric.IPSAE in emits or emits >= DERIVABLE_FROM

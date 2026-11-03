@@ -1,7 +1,7 @@
 """Solvent accessibility, as pure structural arithmetic.
 
 Two callers need it and neither should own it. Gate G5 thresholds on the
-largest contiguous solvent-exposed apolar patch (`CLAUDE.md` §8, amendment
+largest contiguous solvent-exposed apolar patch (`PROTOCOL.md` §8, amendment
 A1), and hotspot selection needs to know which atoms a binder could actually
 reach (`FINDINGS.md` F-5 measured the Asp6 carboxylate at 6.4 Å² on OD1 and
 zero on OD2 using exactly this).
@@ -66,7 +66,7 @@ def atom_sasa_for(
 def exposed_apolar_area(structure: Structure, probe_radius: float = 1.4) -> float:
     """Total solvent-exposed apolar area, the quantity G5 thresholds on.
 
-    A sum rather than a contiguous patch. `CLAUDE.md` §8 registers G5 against
+    A sum rather than a contiguous patch. `PROTOCOL.md` §8 registers G5 against
     the largest *contiguous* patch; contiguity needs a surface-adjacency pass
     that is not written yet, and reporting a total as though it were a patch
     would overstate what is measured. This is the honest intermediate.

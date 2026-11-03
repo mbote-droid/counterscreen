@@ -1,7 +1,7 @@
 """Control panel contract: the crystal-seed refusal, and the registered floor.
 
 The crystal-seed assertion is the one DESIGN.md section 3 asks to be encoded
-rather than written down, and CLAUDE.md section 12.4b registers "return the
+rather than written down, and PROTOCOL.md section 12.4b registers "return the
 crystal pose as a control seed" as a mutant it must kill.
 """
 

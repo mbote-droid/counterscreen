@@ -1,7 +1,7 @@
 """SETUP.md section 2.6 assertions, run as tests against the committed targets.
 
 Section 2.6 is explicit that these are written as tests, not as checks run
-once. The reason is CLAUDE.md section 3.1: if stripping the TCR, truncating or
+once. The reason is PROTOCOL.md section 3.1: if stripping the TCR, truncating or
 re-protonating drops a disulfide, every downstream number is computed on a
 subtly wrong target and nothing later would notice.
 """
@@ -67,7 +67,7 @@ def test_no_tcr_atoms_remain(name: str) -> None:
 
 @pytest.mark.parametrize("name", ["T_plus", "D1_wild_type", "D2_peptide_free"])
 def test_disulfides_survive_preparation(name: str) -> None:
-    """CLAUDE.md section 3.1: the HLA alpha-2 and beta-2m disulfides must survive."""
+    """PROTOCOL.md section 3.1: the HLA alpha-2 and beta-2m disulfides must survive."""
     found = find_disulfides(load(name), DISULFIDE_MAX_ANGSTROM)
     assert len(found) >= MIN_PMHC_DISULFIDES
 

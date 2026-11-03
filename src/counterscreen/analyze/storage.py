@@ -5,7 +5,7 @@
 ``results/refit/``. Raw data is append-only because a returned measurement is
 evidence.
 
-`CLAUDE.md` §12.4b registers "write to ``results/raw/`` from ``analyze/``" as
+`PROTOCOL.md` §12.4b registers "write to ``results/raw/`` from ``analyze/``" as
 a mutant an immutability assertion must kill. The guard is a function every
 write goes through rather than a convention, because the failure is silent and
 irreversible: a re-fitted K_D written over a returned one leaves no trace that

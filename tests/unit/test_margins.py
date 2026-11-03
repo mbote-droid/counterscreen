@@ -1,4 +1,4 @@
-"""Specificity margins, including the three registered mutants of CLAUDE section 12.4b."""
+"""Specificity margins, including the three registered mutants of PROTOCOL section 12.4b."""
 
 import statistics
 from collections.abc import Mapping

@@ -10,11 +10,11 @@ Two consequences shape this module.
 
 **Evaluation short-circuits.** A design stops at its first failing gate. That
 is the whole point of the ordering, and it also makes the gate a design died
-at well defined, which `CLAUDE.md` section 5.4 needs: every negative control
+at well defined, which `PROTOCOL.md` section 5.4 needs: every negative control
 must fail, and fail at its *registered* gate, because a flawed design that
 fails for the wrong reason is a gate working by accident.
 
-**A missing evaluator is an error, never a skip.** `CLAUDE.md` section 12.4b
+**A missing evaluator is an error, never a skip.** `PROTOCOL.md` section 12.4b
 registers "skip gate G3 entirely" as a mutant a gate contract test must catch.
 A runner that silently ignored a gate it had no evaluator for would pass that
 mutant, so :func:`run_gates` refuses to run at all unless every registered
@@ -91,7 +91,7 @@ class GateEvaluator(Protocol):
     """Decides one gate for one design.
 
     Returns the verdict and a short reason. The reason is not decoration: it
-    becomes the diagnostic code of `CLAUDE.md` section 5.4.
+    becomes the diagnostic code of `PROTOCOL.md` section 5.4.
     """
 
     def __call__(self, design: Design, /) -> tuple[bool, str]:
@@ -142,7 +142,7 @@ def run_gates(
 
     Every gate in ``order`` must have an evaluator. A gate silently skipped is
     a gate that never rejects anything, which is the registered mutant in
-    `CLAUDE.md` section 12.4b.
+    `PROTOCOL.md` section 12.4b.
     """
     missing = [gate for gate in order if gate not in evaluators]
     if missing:
@@ -165,7 +165,7 @@ def run_gates(
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Funnel:
-    """Counts at every stage, which `CLAUDE.md` section 12.3a requires reported.
+    """Counts at every stage, which `PROTOCOL.md` section 12.3a requires reported.
 
     Cherry-picking is reporting the best of a thousand designs without
     reporting the thousand. The drop at each step is a result in itself: a gate

@@ -7,11 +7,11 @@ typo cannot silently leave a default in force.
 
 That last rule does a second job here that is worth stating, because it was
 not the reason it was written. The confidence operating point of G2 has no
-field in this file at all: `CLAUDE.md` section 8 and `PREREGISTRATION.md`
+field in this file at all: `PROTOCOL.md` section 8 and `PREREGISTRATION.md`
 section 3 register it as a derivation rule computed on the Stage -1 control
 panel, so it is a *result*, not a setting. Adding ``g2_confidence: 0.61`` to a
 config file therefore fails as an unknown key -- and 0.61 is precisely the
-imported literature threshold that `CLAUDE.md` section 12.3b lists as the
+imported literature threshold that `PROTOCOL.md` section 12.3b lists as the
 canonical v0.2 error, an AF3 ipSAE_min cutoff reported as average precision
 that does not transfer across models or metrics [R2]. The rule that protects
 against typos also makes re-importing that number structurally impossible.
@@ -25,7 +25,7 @@ from pathlib import Path
 
 import yaml
 
-#: CLAUDE.md section 3.6: Track 3 submits exactly this many designs.
+#: PROTOCOL.md section 3.6: Track 3 submits exactly this many designs.
 SUBMITTED_DESIGNS = 20
 
 _PERCENT_MAX = 100.0
@@ -43,47 +43,47 @@ class ConfigError(ValueError):
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class GateConfig:
-    """Parameters of the hard gates in `CLAUDE.md` section 8.
+    """Parameters of the hard gates in `PROTOCOL.md` section 8.
 
     G2 is deliberately absent; see the module docstring.
     """
 
-    # CLAUDE.md section 8, G0: consecutive Ca distance is 3.8 A nominal and
+    # PROTOCOL.md section 8, G0: consecutive Ca distance is 3.8 A nominal and
     # anything beyond this is a chain break.
     g0_chain_break_angstrom: float = 4.5
-    # CLAUDE.md section 8, G0: Ramachandran outliers < 1%.
+    # PROTOCOL.md section 8, G0: Ramachandran outliers < 1%.
     g0_max_ramachandran_outlier_fraction: float = 0.01
     # PREREGISTRATION.md section 3 registers G0 as "any clash", which is the
     # rule; these fix what counts as one, and are implementation detail made
     # explicit rather than buried in geometry/.
     g0_clash_distance_angstrom: float = 2.0
-    # CLAUDE.md section 8, G0: "bond lengths and angles within standard
+    # PROTOCOL.md section 8, G0: "bond lengths and angles within standard
     # tolerance", against ideal peptide geometry.
     g0_bond_length_tolerance_angstrom: float = 0.1
     g0_bond_angle_tolerance_degrees: float = 10.0
     # A peptide bond is cis when omega is near zero; trans is near 180.
     g0_cis_peptide_tolerance_degrees: float = 30.0
     # S-S is about 2.05 A; this is the distance below which two cysteine SG
-    # atoms are treated as bonded. Used for the CLAUDE.md section 3.1 target
+    # atoms are treated as bonded. Used for the PROTOCOL.md section 3.1 target
     # disulfide assertion, not as a design filter.
     g0_disulfide_max_angstrom: float = 2.5
-    # CLAUDE.md section 8, G1: 2.0 A, Ca only, after Kabsch superposition.
+    # PROTOCOL.md section 8, G1: 2.0 A, Ca only, after Kabsch superposition.
     g1_max_scrmsd_angstrom: float = 2.0
-    # CLAUDE.md section 8, G1: pLDDT >= 80 on the refolded prediction.
+    # PROTOCOL.md section 8, G1: pLDDT >= 80 on the refolded prediction.
     g1_min_plddt: float = 80.0
-    # CLAUDE.md section 9, stage 2: best of 8 ProteinMPNN sequences.
+    # PROTOCOL.md section 9, stage 2: best of 8 ProteinMPNN sequences.
     g1_mpnn_sequences: int = 8
     # PREREGISTRATION.md section 3, G3: the 10th percentile of the contact
     # fraction achieved by the positive control panel.
     g3_control_percentile: float = 10.0
-    # CLAUDE.md section 7.1 and G4: margins must beat 2 x pooled seed SD.
+    # PROTOCOL.md section 7.1 and G4: margins must beat 2 x pooled seed SD.
     g4_sd_multiple: float = 2.0
     # PREREGISTRATION.md section 3, G5 (amendment A1): at or below the 90th
     # percentile of the panel's largest apolar patch.
     g5_control_percentile: float = 90.0
-    # CLAUDE.md section 8, G6.
+    # PROTOCOL.md section 8, G6.
     g6_max_buried_unsatisfied_charges: int = 0
-    # CLAUDE.md section 3.6 and G8: submission length bounds.
+    # PROTOCOL.md section 3.6 and G8: submission length bounds.
     g8_min_length_aa: int = 10
     g8_max_length_aa: int = 250
     # PREREGISTRATION.md section 3, G9: max TM-score against the PDB.
@@ -94,15 +94,15 @@ class GateConfig:
 class SamplingConfig:
     """How much is generated and with how many seeds."""
 
-    # CLAUDE.md section 9, stage 1.
+    # PROTOCOL.md section 9, stage 1.
     backbone_min_length_aa: int = 55
     backbone_max_length_aa: int = 75
-    # CLAUDE.md section 9, stage 2.
+    # PROTOCOL.md section 9, stage 2.
     mpnn_temperature: float = 0.1
-    # CLAUDE.md section 9, stage 4a / 4b.
+    # PROTOCOL.md section 9, stage 4a / 4b.
     screening_seeds: int = 2
     finalist_seeds: int = 5
-    # PREREGISTRATION.md section 5 (amendment A6), CLAUDE.md section 10,
+    # PREREGISTRATION.md section 5 (amendment A6), PROTOCOL.md section 10,
     # DESIGN.md section 5: the noise floor and the CI tolerance band come from
     # the spread over this many identical runs.
     noise_floor_repeats: int = 5
@@ -110,7 +110,7 @@ class SamplingConfig:
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class SelectionConfig:
-    """Clustering and the arm allocation of `CLAUDE.md` section 11."""
+    """Clustering and the arm allocation of `PROTOCOL.md` section 11."""
 
     # PREREGISTRATION.md section 4 step 2 (amendment A2): single-linkage at the
     # conventional same-fold boundary.
@@ -122,7 +122,7 @@ class SelectionConfig:
     m3: int = 9
     affinity_control: int = 1
     reserve: int = 1
-    # CLAUDE.md section 11: placed here so it is still tested if only part of
+    # PROTOCOL.md section 11: placed here so it is still tested if only part of
     # the list is selected.
     affinity_control_rank: int = 10
 
@@ -183,7 +183,7 @@ class CampaignConfig:
             raise ConfigError(msg)
         if self.selection.total != SUBMITTED_DESIGNS:
             msg = (
-                f"arm allocation sums to {self.selection.total}, but CLAUDE.md "
+                f"arm allocation sums to {self.selection.total}, but PROTOCOL.md "
                 f"section 11 allocates exactly {SUBMITTED_DESIGNS} designs"
             )
             raise ConfigError(msg)

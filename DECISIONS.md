@@ -51,7 +51,7 @@ terms; (d) the specificity margin, `M = C(T+) − C(decoy)`.
 
 **Coarse filter — competition arithmetic, minutes.** The challenge ranks
 lexicographically: mutation specificity, then peptide dependence, then
-affinity (`CLAUDE.md` §3.5). Criteria 1 and 2 decide the outcome; criterion 3
+affinity (`PROTOCOL.md` §3.5). Criteria 1 and 2 decide the outcome; criterion 3
 only breaks ties among designs that already cleared them. Options (a) and (b)
 optimise criterion 3 directly and criteria 1–2 only incidentally. **A
 micromolar binder that discriminates beats a nanomolar binder that does not.**
@@ -87,7 +87,7 @@ derivations; the current implementation added seed pairing.
 
 **Validation.** Antisymmetry `M(A,B) = −M(B,A)` and gate monotonicity are
 property-tested over generated inputs. Three of the seven level-1 mutants
-registered in `CLAUDE.md` §12.4b attack this decision — sign inversion,
+registered in `PROTOCOL.md` §12.4b attack this decision — sign inversion,
 pooled-SD scope, D1/D2 swap — and each has a test that kills it.
 
 **Residual risk.** The margin is only as good as the metric `C`. If no model
@@ -105,7 +105,7 @@ clearest funnel in the project.
 **Question.** A 10-residue peptide differs from its wild type at one position.
 Through what physical mechanism should a binder read that difference?
 
-**Candidate set (3), from `CLAUDE.md` §4.** M1 direct electrostatic readout of
+**Candidate set (3), from `PROTOCOL.md` §4.** M1 direct electrostatic readout of
 the Asp6 carboxylate; M2 composite readout of the altered local surface; M3
 conformational selection on the peptide backbone.
 
@@ -170,7 +170,7 @@ targets, so neither promotion nor demotion is supported.
 
 **The kinetic trap this decision exposed.** The affinity-only control's
 submission rank was computed as `len(picked[M1]) + 1`. With M1 at nine slots
-that yields rank 10, which is what `CLAUDE.md` §11 asks for. It was right by
+that yields rank 10, which is what `PROTOCOL.md` §11 asks for. It was right by
 arithmetic, not by intent. When A7 moved M1 to four, the control would
 silently have moved to rank 5 — defeating the stated reason for the placement,
 that it be tested if only part of the list is selected. A registered test
@@ -294,8 +294,8 @@ misbehaves:
 The rung used is reported in every output, and descending is itself a result.
 
 **The degeneracy, still open.** The specification defines `pooled SD` **twice**
-and the definitions are not equivalent. `CLAUDE.md` §7.1 and `DESIGN.md` §4
-define it per design, across that design's seeds. `CLAUDE.md` §10 and
+and the definitions are not equivalent. `PROTOCOL.md` §7.1 and `DESIGN.md` §4
+define it per design, across that design's seeds. `PROTOCOL.md` §10 and
 `PREREGISTRATION.md` §5 describe a campaign-level noise floor measured once
 from five identical Day-1 runs. The same symbol sets **G4's denominator** and
 **the ranking tie tolerance**, and the two readings give different gate
@@ -332,7 +332,7 @@ second kind:
 | `fold()` refuses a design not stamped G0-passed | Spending a GPU-hour on an invalid structure |
 
 Each converts a documented rule into one the code cannot break. That is the
-distinction `CLAUDE.md` §12.3b asks for between caught-by-automation and
+distinction `PROTOCOL.md` §12.3b asks for between caught-by-automation and
 caught-by-review, applied forward rather than backward.
 
 **A caveat against over-reading the type guard.** It did not work on the first
@@ -354,5 +354,5 @@ run, Stage −1 has not executed.
 The structural measurements (F-5, F-6, F-7) are observations on crystal
 structures solved by others, reproduced here with stated methods and caveats.
 They constrain which mechanism is worth spending designs on. They do **not**
-show that any binder will work, and `CLAUDE.md` §20 governs every statement
+show that any binder will work, and `PROTOCOL.md` §20 governs every statement
 made from them: a computational screen licenses no claim about binding.

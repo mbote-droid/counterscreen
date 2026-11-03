@@ -1,7 +1,7 @@
 """Unit-tagged scalars, and the thermodynamic constants of [R21].
 
 Every energy in this project carries its unit in its type. The reason is
-`CLAUDE.md` section 7.2: Rosetta's interface filter reports Rosetta Energy
+`PROTOCOL.md` section 7.2: Rosetta's interface filter reports Rosetta Energy
 Units, not kcal/mol, with no explicit solvent or conformational entropy
 sampling. It may be ranked with and must never be quoted as an affinity, and
 the phrase "REU-equivalent" is recorded there as an error made in v0.2. A bare
@@ -126,7 +126,7 @@ class REU(Quantity):
     Deliberately not convertible to :class:`KcalPerMol`. Rosetta's interface
     filter is historically named ``ddg`` and reports a score difference with no
     explicit solvent or conformational entropy sampling, so it ranks designs
-    and does not measure affinity (`CLAUDE.md` section 7.2). If a conversion
+    and does not measure affinity (`PROTOCOL.md` section 7.2). If a conversion
     ever appears to be needed, the need is a bug in the caller.
     """
 

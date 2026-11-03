@@ -1,6 +1,6 @@
 """Hotspot schemes for the three mechanism arms, derived not declared.
 
-`CLAUDE.md` §9 stage 1 runs RFdiffusion with "three hotspot schemes for
+`PROTOCOL.md` §9 stage 1 runs RFdiffusion with "three hotspot schemes for
 M1/M2/M3". A hotspot conditions generation on a target residue, so the scheme
 *is* the mechanism: it is where the arm's hypothesis becomes a backbone.
 

@@ -89,7 +89,7 @@ def test_ddg_spec_breaks_a_remaining_tie_in_m1() -> None:
 
 @pytest.mark.parametrize("arm", [Arm.M2, Arm.M3])
 def test_ddg_spec_cannot_move_a_design_outside_m1(arm: Arm) -> None:
-    """CLAUDE section 7.2: weighting it for M2 or M3 would delete those arms."""
+    """PROTOCOL section 7.2: weighting it for M2 or M3 would delete those arms."""
     base = [
         entry("a", 0.5, m_pep=0.5, confidence=0.5, ddg=1.0, arm=arm),
         entry("b", 0.5, m_pep=0.5, confidence=0.5, ddg=9.0, arm=arm),

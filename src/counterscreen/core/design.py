@@ -22,7 +22,7 @@ from counterscreen.core.hashing import normalise_sequence, sequence_id
 
 
 class Gate(enum.StrEnum):
-    """The hard gates of `CLAUDE.md` section 8, in pipeline order.
+    """The hard gates of `PROTOCOL.md` section 8, in pipeline order.
 
     G5 is the hydrophobic patch gate registered by amendment A1. It was vacated
     in v0.3 when delta-delta-G_spec was demoted to a ranking feature, and the
@@ -42,7 +42,7 @@ class Gate(enum.StrEnum):
 
 
 class Arm(enum.StrEnum):
-    """The discrimination mechanisms of `CLAUDE.md` section 4.
+    """The discrimination mechanisms of `PROTOCOL.md` section 4.
 
     The affinity-only control is an arm of its own: it is the design that would
     win if ranked on confidence against T+ alone, and it is submitted precisely
@@ -170,7 +170,7 @@ class Design:
         """Return the earliest gate this design failed, or ``None`` if it failed none.
 
         The gate a design dies at is a reportable quantity: it is the diagnostic
-        code of `CLAUDE.md` section 5.4 and a row of the funnel in
+        code of `PROTOCOL.md` section 5.4 and a row of the funnel in
         `METHODS.md` section 8.7.
         """
         for stamp in self.gates:

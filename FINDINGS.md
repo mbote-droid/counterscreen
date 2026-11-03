@@ -21,7 +21,7 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-2** | Documentary, decisive | That [R11]'s accession is wrong and D3–D5 are unbuildable | Nothing about the Zhu structures themselves, which remain unread |
 | **F-3** | Direct count from published sequences | That the panel supplies one single-residue control against a floor of five | Nothing about whether the Liu binders work, which is their own paper's result |
 | **F-4** | Self-referential | That the registered rule rejects its own document | Nothing scientific |
-| **F-5** | Standard measurement, one structure | That M1's specified handle does not exist and Asp6 is largely buried | **Not a discovery.** `CLAUDE.md` §3.3 predicted this in prose; the contribution is quantifying it and acting before GPU spend. SASA and contact distances on a deposited structure are routine |
+| **F-5** | Standard measurement, one structure | That M1's specified handle does not exist and Asp6 is largely buried | **Not a discovery.** `PROTOCOL.md` §3.3 predicted this in prose; the contribution is quantifying it and acting before GPU spend. SASA and contact distances on a deposited structure are routine |
 | **F-6** | Controlled structural comparison | That the known discriminator reads accessible positions that move rather than the buried one that changes | **The substantive finding.** Still one receptor, one structure pair, and that receptor binds both complexes — so it evidences *how it binds* more strongly than *how it discriminates* |
 | **F-7** | Derivation from F-5 | That M1 reduces to a single target | A corollary of F-5, not independent evidence |
 
@@ -40,7 +40,7 @@ run.
 ## F-1 · 7OW4 has no density at the discriminating residue, in all four copies
 
 **Believed.** The challenge page states that peptide positions 5 and 6 have no
-coordinates in 7OW4, the receptor-free G12D structure (`CLAUDE.md` §3.3).
+coordinates in 7OW4, the receptor-free G12D structure (`PROTOCOL.md` §3.3).
 `SETUP.md` §3.4 says to confirm this rather than trust it.
 
 **Checked.** Parsed 7OW4 directly and listed which peptide residues carry
@@ -60,7 +60,7 @@ and 7OW6 — both receptor-bound — carry complete 10-mers.
 **Changed.** The claim is confirmed and is stronger than stated. It is not one
 modelling choice in one copy; it is systematic disorder reproduced four times
 independently, and the receptor demonstrably orders the loop. This strengthens
-the candidate finding in `CLAUDE.md` §12.3: the residue carrying the entire
+the candidate finding in `PROTOCOL.md` §12.3: the residue carrying the entire
 discrimination signal is experimentally undetermined in the unbound state, and
 how a structure predictor behaves when the discriminating atoms are
 undetermined is a specific, genuine, under-characterised question. The
@@ -103,7 +103,7 @@ would partly measure that instead of the substitution.
 
 **Believed.** `SETUP.md` §3.1 says to extract the panel from Supplementary
 Table 1, and §3.2 states that only CTNNB1 S5F is a true single-residue
-discrimination, with others at 3 to 7 differences. `CLAUDE.md` §5.1 and §5.4
+discrimination, with others at 3 to 7 differences. `PROTOCOL.md` §5.1 and §5.4
 describe an intended panel of **18 published binders** plus the 7OW6 TCR,
 giving n = 19 and a rule-of-three false-reject bound "near 16%".
 
@@ -136,7 +136,7 @@ off-target:
    §3.2 estimates for the remainder.
 2. **The panel is ten designs, not eighteen.** Table 1 lists ten targets and
    Table 2 thirteen rows, of which three are reference TCRs. The figure of 18
-   in `CLAUDE.md` §5.1 does not match the source. This changes §5.4's
+   in `PROTOCOL.md` §5.1 does not match the source. This changes §5.4's
    arithmetic: with the TCR the panel is about 11, so the rule-of-three upper
    bound on the false-reject rate is near **27%**, not the 16% stated for
    n = 19.
@@ -176,7 +176,7 @@ Open for decision.
 
 ## F-5 · The M1 handle is 6.4 square angstrom of one oxygen, already bidentate to Arg114
 
-**Believed.** `CLAUDE.md` §4 defines M1, the direct electrostatic readout, as
+**Believed.** `PROTOCOL.md` §4 defines M1, the direct electrostatic readout, as
 placing an Arg, Lys or His against "the carboxylate oxygens of Asp6 **not
 taken by Arg114**", calls it the highest expected value of the three
 mechanisms, and allocates it **9 of the 20 submissions** — the largest arm.
@@ -256,7 +256,7 @@ part, not the individual numbers.
 
 ## F-6 · The only known discriminator never touches the carboxylate
 
-**Believed.** `CLAUDE.md` §4 motivates M1 from [R9]'s finding that
+**Believed.** `PROTOCOL.md` §4 motivates M1 from [R9]'s finding that
 discrimination on this neoantigen "proceeded through a salt bridge to the
 mutant aspartate", and §5.2 rule 5 says to calibrate the G3 peptide-contact
 threshold on the real TCR rather than guess it. How the 7OW6 TCR achieves
@@ -378,7 +378,7 @@ recovers exactly the propagating displacement of F-6.
 
 ## F-8 · The 1:1 adequacy test has no power on a steady-state isotherm
 
-**Believed.** `CLAUDE.md` §12.5 item 2 requires testing the 1:1 Langmuir
+**Believed.** `PROTOCOL.md` §12.5 item 2 requires testing the 1:1 Langmuir
 assumption by inspecting fit residuals, and trying heterogeneous-ligand or
 two-state models where 1:1 fits badly. The implicit assumption was that
 residual inspection on the fitted isotherm would detect inadequacy.

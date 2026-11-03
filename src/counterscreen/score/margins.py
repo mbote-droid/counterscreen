@@ -1,6 +1,6 @@
 """Specificity margins: the quantity this project ranks on.
 
-`CLAUDE.md` section 3.5 states the strategic fact the whole pipeline turns on.
+`PROTOCOL.md` section 3.5 states the strategic fact the whole pipeline turns on.
 The competition resolves mutation specificity and peptide-dependence before
 affinity, so a micromolar binder that discriminates beats a nanomolar binder
 that does not, yet nearly every default pipeline ranks on confidence against
@@ -11,7 +11,7 @@ the target alone. The margins here are the alternative objective:
     M_var = C(T+) - max C(D3..D5)   variant discrimination, optional
 
 Three implementation decisions are load-bearing, and each has a registered
-mutant in `CLAUDE.md` section 12.4b that a test must kill.
+mutant in `PROTOCOL.md` section 12.4b that a test must kill.
 
 **Pooled SD is measured across seeds within one design, never across
 designs.** `DESIGN.md` section 4 is explicit that getting this backwards would
@@ -38,12 +38,12 @@ import statistics
 from collections.abc import Mapping, Sequence
 
 #: Two seeds is the minimum that admits a standard deviation at all, and is
-#: what `CLAUDE.md` section 9 runs at the screening tier.
+#: what `PROTOCOL.md` section 9 runs at the screening tier.
 MIN_SEEDS = 2
 
 
 class TargetRole(enum.StrEnum):
-    """What a target is for, per `CLAUDE.md` section 3.1."""
+    """What a target is for, per `PROTOCOL.md` section 3.1."""
 
     TARGET = "target"
     MUTATION_DECOY = "mutation_decoy"
@@ -138,7 +138,7 @@ class Margin:
     def exceeds_noise(self, sd_multiple: float) -> bool:
         """Whether the margin clears the G4 noise floor.
 
-        One-sided on purpose. `CLAUDE.md` section 8 registers G4 as
+        One-sided on purpose. `PROTOCOL.md` section 8 registers G4 as
         ``M > 2 x pooled SD``, so a design that scores *better* against a
         decoy produces a negative margin and fails, rather than passing on
         magnitude.
@@ -255,7 +255,7 @@ class CounterScreen:
     def m_var(self) -> Margin:
         """Variant-discrimination margin: the target over the best variant decoy.
 
-        Optional, per `CLAUDE.md` section 7.1. Uses the maximum over D3..D5,
+        Optional, per `PROTOCOL.md` section 7.1. Uses the maximum over D3..D5,
         so the margin reflects the decoy the design was worst at rejecting.
         """
         variants = self.by_role(TargetRole.VARIANT_DECOY)
@@ -269,7 +269,7 @@ class CounterScreen:
 class Distribution:
     """A distribution summary, which is how every quality metric is reported.
 
-    `CLAUDE.md` section 12.3a: report distributions, never point values. The
+    `PROTOCOL.md` section 12.3a: report distributions, never point values. The
     median, the interquartile range and the count passing say something; a
     single mean invites the reader to assume it is typical.
     """

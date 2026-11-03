@@ -1,4 +1,4 @@
-# CLAUDE.md — Builder Brief
+# PROTOCOL.md — Project Protocol
 
 **Project:** Specificity-first protein binder design and evaluation
 **Author:** Dr. Samuel Mbote · GitHub `mbote-droid`
@@ -6,8 +6,11 @@
 **Written:** 1 November 2026 · last revised 2 November 2026
 **Campaign 1 deadline:** 8 November 2026, 23:59 AoE
 
-> Read this entire file before writing code. Section 14 (Non-Goals) is binding.
-> Companion files: `DESIGN.md` (how it works), `METHODS.md` (scientific write-up), `REFERENCES.md` (citations), `PREREGISTRATION.md` (commit before scoring own designs).
+> The scientific specification for this project: what is built, and why each
+> choice is defensible. Section 14 (Non-Goals) is binding on scope.
+> Companion files: `DESIGN.md` (architecture), `METHODS.md` (scientific write-up),
+> `REFERENCES.md` (citations), `PREREGISTRATION.md` (committed before scoring),
+> `DECISIONS.md` (why each method was chosen), `FINDINGS.md` (what measurement changed).
 
 ---
 
@@ -20,11 +23,15 @@ Two deliverables from one body of work:
 
 **The second is the more valuable deliverable and must not be treated as a byproduct.**
 
-### Why
+### Why this pair of deliverables
 
-The author is a medical doctor (MBChB, MCS COSECSA) who moved into computational biology, holds no PhD, is based in rural Kenya, and is applying for remote contractor roles in computational biology, protein engineering, scientific computing and AI evaluation. Job descriptions in this space consistently require: designing rigorous evaluation tasks, developing objective scoring rubrics, identifying model limitations and failure cases, and distinguishing computational predictions from experimentally validated results.
-
-A design campaign proves you can *use* the tools. An evaluation study proves you can *judge* them. Employers want the second. Experimental ground truth makes the claims independently verifiable, which outweighs any CV assertion.
+A design campaign demonstrates that the tools can be used. An evaluation study
+demonstrates that they can be judged, which is the scarcer and more useful
+capability: the field is mid-way through deciding how it measures itself, and
+in-silico filters are routinely deployed without a measured false-accept rate
+for the filter itself. Experimental ground truth makes either claim
+independently verifiable, which is why a competition offering free wet-lab
+validation is the venue rather than the purpose.
 
 ### Field context
 
@@ -270,7 +277,7 @@ computed by in-place Asp6→Gly mutation, local repack, rescore.
 
 ### 7.3 PyRosetta contingency
 
-PyRosetta requires a licence and non-trivial install. The author operates under a company name (Daktari Genomed Labs), which may affect eligibility for the free academic licence. **Verify on Day 1.** If blocked, the Rosetta-free fallback is:
+PyRosetta requires a licence and a non-trivial install, and free academic eligibility depends on the operating entity. **Verify before relying on it.** If blocked, the Rosetta-free fallback is:
 
 - Buried surface area — FreeSASA or Biotite
 - Contact maps, H-bond and salt-bridge geometry — Biotite or MDAnalysis
@@ -597,7 +604,7 @@ Seven days is tight, and §10 makes it tighter.
 | **Should** | §12.2 offline evaluation study · **mutation testing level 2, false-accept rate (§12.4b)** · **G9 Foldseek structural novelty** · §12.6 occupancy · adversarial log · `AGENT_ERRORS.md` · §12.5b theory-vs-measurement · REFERENCES.md |
 | **Could** | `REQUIREMENTS.md` with traceability matrix · full Snakemake CI · optional decoys D3–D5 · ensemble-versus-single comparison · power analysis · replication playbook (§13b) |
 
-> **Honest time cost.** `REQUIREMENTS.md` with an EARS-style traceability matrix is three to four hours. It is the author's established standard from prior work, but in a seven-day sprint with Day 1 already overloaded it competes directly with the false-accept-rate measurement. **If forced to choose, measure the false-accept rate.** A traceability matrix documents the build; the false-accept rate is a result.
+> **Honest time cost.** `REQUIREMENTS.md` with an EARS-style traceability matrix is three to four hours. It documents the build thoroughly, but it competes directly with the false-accept-rate measurement for the same hours. **If forced to choose, measure the false-accept rate.** A traceability matrix documents the build; the false-accept rate is a result.
 | **After submission** | §12.5 raw sensorgram re-analysis, if designs are tested · §12.4 post-hoc precision and recall |
 
 §12.6 occupancy modelling sits in **Should** — it needs no GPU, runs on predicted K_D values before any experimental result exists, and can be written while folding jobs occupy the GPU.
@@ -635,7 +642,7 @@ One repository, one pipeline, multiple campaigns.
 ```
 counterscreen/
   README.md
-  CLAUDE.md                  # this file
+  PROTOCOL.md                  # this file
   DESIGN.md                  # architecture and engineering decisions
   METHODS.md                 # scientific write-up
   REFERENCES.md              # citations
@@ -675,14 +682,6 @@ counterscreen/
   tests/
   docs/
 ```
-
-### Commit convention
-
-**Commits show only `mbote-droid`. No AI co-author trailers, no "Generated with" lines, no AI attribution of any kind in commit messages or PR descriptions.**
-
-Separately and not in conflict: **`METHODS.md` carries a one-line AI-assistance disclosure.** A methods description is scored in this competition, the toolchain is part of the method, and honest provenance matters to employers. Commit attribution and scientific methods disclosure are different things.
-
----
 
 ## 16. Reproducibility — honest about the Kaggle constraint
 

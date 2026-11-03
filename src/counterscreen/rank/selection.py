@@ -8,7 +8,7 @@ the prescreen raises a flag.
 this module derived it: M1 held nine slots, so filling arms in order put the
 control at rank 10 by arithmetic. Amendment A7 then moved M1 to four and M3 to
 nine, which would silently have placed the control at rank 5. Since
-`CLAUDE.md` section 11 asks for approximately rank 10 *so that it is still
+`PROTOCOL.md` section 11 asks for approximately rank 10 *so that it is still
 tested if only part of the list is selected*, a rank that drifts with the
 allocation defeats the purpose. It now comes from
 ``SelectionConfig.affinity_control_rank`` and is clamped to the list length.

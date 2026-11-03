@@ -1,6 +1,6 @@
 """Gate G0: whether a structure is physically possible at all.
 
-`CLAUDE.md` section 8 puts G0 first and gives the reason: generative backbones
+`PROTOCOL.md` section 8 puts G0 first and gives the reason: generative backbones
 do emit non-physical geometry, and confidence scores miss it entirely. It
 costs seconds where co-folding costs minutes to hours, so a structure that
 fails here must never reach a GPU. `DESIGN.md` section 8b states the same rule
@@ -140,7 +140,7 @@ class GeometryReport:
     def reasons(self) -> tuple[str, ...]:
         """Why G0 failed, as short diagnostic strings.
 
-        A design's failing gate is a reportable quantity (`CLAUDE.md` section
+        A design's failing gate is a reportable quantity (`PROTOCOL.md` section
         5.4), so the reason travels with the verdict rather than being
         recomputed later.
         """
@@ -237,7 +237,7 @@ L_CHIRALITY_SIGN = -1.0
 def find_disulfides(structure: Structure, max_distance: float) -> tuple[Disulfide, ...]:
     """Find cysteine pairs whose SG atoms are within bonding distance.
 
-    `CLAUDE.md` section 3.1 requires asserting that the HLA alpha-2 and
+    `PROTOCOL.md` section 3.1 requires asserting that the HLA alpha-2 and
     beta-2-microglobulin disulfides survive target preparation: if stripping
     the TCR, truncating or re-protonating drops them, every downstream number
     is computed on a subtly wrong target.

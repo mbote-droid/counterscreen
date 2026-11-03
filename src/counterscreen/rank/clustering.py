@@ -1,6 +1,6 @@
 """Diversity clustering, so twenty submissions are twenty experiments.
 
-`CLAUDE.md` section 11 gives the reason in one line: twenty variants of one
+`PROTOCOL.md` section 11 gives the reason in one line: twenty variants of one
 fold is one experiment, not twenty. Designs are therefore clustered by
 structural similarity within each mechanism arm and cluster representatives
 are submitted, never the top N by score.

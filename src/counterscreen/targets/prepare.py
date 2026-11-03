@@ -1,6 +1,6 @@
 """Target preparation: T+, the decoys, and the truncated screening construct.
 
-`SETUP.md` section 2 fixes what is built and `CLAUDE.md` section 3.1 fixes why
+`SETUP.md` section 2 fixes what is built and `PROTOCOL.md` section 3.1 fixes why
 each assertion exists. The one that matters most is the disulfide check: the
 HLA alpha-2 domain and beta-2-microglobulin each carry a structural disulfide,
 and if stripping the TCR, truncating or re-protonating drops one, every
@@ -38,7 +38,7 @@ from counterscreen.geometry.validity import Disulfide, find_disulfides
 DISULFIDE_MAX_ANGSTROM = 2.5
 
 #: Minimum disulfides expected in a prepared three-chain pMHC: one in the
-#: HLA alpha-2 domain, one in beta-2-microglobulin (`CLAUDE.md` section 3.1).
+#: HLA alpha-2 domain, one in beta-2-microglobulin (`PROTOCOL.md` section 3.1).
 MIN_PMHC_DISULFIDES = 2
 
 
@@ -162,7 +162,7 @@ def prepare(
     if len(disulfides) < MIN_PMHC_DISULFIDES:
         msg = (
             f"{name}: found {len(disulfides)} disulfide(s), expected at least "
-            f"{MIN_PMHC_DISULFIDES}. CLAUDE.md section 3.1: if preparation drops them, "
+            f"{MIN_PMHC_DISULFIDES}. PROTOCOL.md section 3.1: if preparation drops them, "
             "every downstream number is computed on a subtly wrong target"
         )
         raise PreparationError(msg)

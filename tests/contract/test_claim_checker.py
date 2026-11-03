@@ -100,7 +100,7 @@ def test_a_literature_value_with_a_reference_marker_is_allowed() -> None:
 @pytest.mark.parametrize(
     "line",
     [
-        "See CLAUDE.md section 12.6 for the argument.",
+        "See PROTOCOL.md section 12.6 for the argument.",
         "As §8.7 sets out.",
         "## 8.7 The funnel",
         "1. Apply gates; log rejections per gate",

@@ -59,7 +59,7 @@ def test_m1_reports_which_oxygen_is_reachable() -> None:
 
 
 def test_m2_recovers_the_network_the_specification_names() -> None:
-    """CLAUDE section 4 names the Asp6-Arg114-Gln70 surface; both appear."""
+    """PROTOCOL section 4 names the Asp6-Arg114-Gln70 surface; both appear."""
     labels = m2_scheme(t_plus(), "C", MUTANT_POSITION).labels()
     assert "A114" in labels
     assert "A70" in labels

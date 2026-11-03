@@ -1,6 +1,6 @@
 """Fail if any commit message carries AI attribution.
 
-`CLAUDE.md` section 15 is unambiguous: commits show only `mbote-droid`, with
+`PROTOCOL.md` section 15 is unambiguous: commits show only `mbote-droid`, with
 no AI co-author trailers, no "Generated with" lines, and no AI attribution of
 any kind in commit messages or pull request descriptions. `build_rules.pdf`
 Part XIV repeats it.
@@ -8,10 +8,9 @@ Part XIV repeats it.
 Enforced here rather than left to care: a trailer added by habit is easy to
 miss in review and permanent in history once pushed.
 
-`CLAUDE.md` section 16 says repository history is part of the artifact, and
-`build_rules.pdf` Part XII.5 records that what an outside reader actually
-responded to was the commit messages and code structure. A trailer in that
-history is not cosmetic.
+Repository history is part of the artifact: a reader who opens the log is
+reading the project's record of itself, so what appears there is not
+cosmetic.
 """
 
 from __future__ import annotations
@@ -73,7 +72,7 @@ def main(argv: list[str]) -> int:
         print(f"no AI attribution in commit messages across {rev_range}")
         return _EXIT_OK
 
-    print("AI attribution found in commit messages (CLAUDE.md section 15):", file=sys.stderr)
+    print("tool attribution found in commit messages:", file=sys.stderr)
     for sha, hits in found:
         print(f"  {sha[:12]}  matched {hits}", file=sys.stderr)
     return _EXIT_VIOLATION

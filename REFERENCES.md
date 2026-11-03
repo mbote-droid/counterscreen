@@ -1,8 +1,8 @@
 # REFERENCES.md
 
-**Spec version 0.5** · 2 November 2026 · part of a five-file set: `CLAUDE.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
+**Spec version 0.5** · 2 November 2026 · part of a five-file set: `PROTOCOL.md`, `DESIGN.md`, `METHODS.md`, `PREREGISTRATION.md`, `REFERENCES.md`
 
-Every quantitative claim in `CLAUDE.md`, `DESIGN.md` and `METHODS.md` traces to an entry here.
+Every quantitative claim in `PROTOCOL.md`, `DESIGN.md` and `METHODS.md` traces to an entry here.
 
 **Confidence labels.** `verified` — primary source read directly. `secondary` — reported by a reliable intermediary, primary not yet read. `unverified` — encountered in search results, needs checking before any public use.
 
@@ -114,10 +114,10 @@ Model builds a rubric before reading submissions; inputs include participant met
 ## Experimental data handling
 
 **[R26]** `secondary` — Adaptyv Bio, public statements accompanying the Nipah Protein Design Competition data release (January 2026). Added off-target human serum albumin binding measurements, quantified expression for all proteins in their E. coli cell-free system, and noted that the standard model for fitting protein binding data assumes a 1:1 interaction, with further fitting models added.
-**Use:** motivates independent re-fitting of returned sensorgrams (`CLAUDE.md` §12.5, `METHODS.md` §8.2). **Verify the current fitting methodology directly with Adaptyv documentation before relying on this.**
+**Use:** motivates independent re-fitting of returned sensorgrams (`PROTOCOL.md` §12.5, `METHODS.md` §8.2). **Verify the current fitting methodology directly with Adaptyv documentation before relying on this.**
 
 **[R27]** `secondary` — Anthropic, acquisition of Mithril Medicine, announced 27 October 2026 (completed July 2026). One-person biotech, founder Cody Tranbarger, programmes in LAMA2-related congenital muscular dystrophy and alpha-dystroglycanopathy. Claude used to organise contracts, logistics and experiments across 11 external laboratories, alongside eight paid part-time consultants. Concept to mouse data in under 18 months; treated mice roughly doubled grip strength. Anthropic calls the model "Pipeline-in-a-Person". Technical report not peer reviewed. **Anthropic documented six errors Claude made during the programme, some of which reached external laboratories in emails before human review caught them.**
-**Use:** precedent only, for the practice of publishing agent errors alongside agent results (`CLAUDE.md` §12.3b, `METHODS.md` §8.3). **Not a scientific reference for any claim in this project.**
+**Use:** precedent only, for the practice of publishing agent errors alongside agent results (`PROTOCOL.md` §12.3b, `METHODS.md` §8.3). **Not a scientific reference for any claim in this project.**
 > Context worth recording, since the "solo founder" framing is widely repeated in a simplified form: the founder held a Harvard MS/MBA, had worked at Goldman Sachs, Casdin Capital and Prime Medicine, was entrepreneur-in-residence at Atlas Venture which seeded the company, and retained eight paid consultants. One full-time employee, not one person working unaided.
 
 ---
