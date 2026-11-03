@@ -115,9 +115,11 @@ class SelectionConfig:
     # PREREGISTRATION.md section 4 step 2 (amendment A2): single-linkage at the
     # conventional same-fold boundary.
     cluster_tm_score: float = 0.5
-    m1: int = 9
+    # Amendment A7: M1 and M3 swapped on the structural evidence in
+    # FINDINGS.md F-5 and F-6, before any design was generated.
+    m1: int = 4
     m2: int = 5
-    m3: int = 4
+    m3: int = 9
     affinity_control: int = 1
     reserve: int = 1
     # CLAUDE.md section 11: placed here so it is still tested if only part of

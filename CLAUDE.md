@@ -146,13 +146,13 @@ Winner must clear all three, ties settled in that order. Each step also awards a
 
 Allocate designs deliberately across three hypotheses rather than ranking one pool. Makes the campaign an experiment.
 
-**M1 — Direct electrostatic readout.** Arg, Lys or His contacting the carboxylate oxygens of Asp6 not taken by Arg114. Against wild type you lose the salt bridge *and* bury an unsatisfied positive charge. Double penalty. Highest expected value; also what competitors will find. Motivated by [R9].
+**M1 — Direct electrostatic readout.** *Redefined by amendment A8; the original wording named a target that does not exist.* A hydrogen-bond donor placed against the **solvent-accessible face of OD1** — the only carboxylate oxygen with non-zero SASA, at 6.4 Å² — or displacing the **Gln70** contacts to OD2 (3.08 Å and 3.58 Å), which are the weaker of the two coordinating interactions. The Arg114 pair is **not** a target: it is bidentate across both oxygens at 2.95 Å and 3.04 Å and leaves none free (`FINDINGS.md` F-5). Against wild type a successful design still loses the contact *and* buries an unsatisfied positive charge, so the double penalty stands. Expected value is now the **lowest** of the three, not the highest: the handle is 6.4 Å² on an 85%-buried residue, and the only worked discriminator avoids it entirely (F-6). Motivated by [R9], which reported salt-bridge discrimination on the **9-mer** on 9UV8 — a different length and structure, and a finding that does not transfer to this complex.
 
 **M2 — Composite surface readout.** Target the altered local surface created by the Asp6–Arg114–Gln70 network rather than the aspartate itself. In wild type Arg114 is unpaired and likely adopts a different rotamer, changing local shape and electrostatics.
 
 **M3 — Conformational selection.** Require a tightly defined peptide backbone conformation. Glycine's wider backbone freedom means wild type pays a larger entropic ordering penalty. Specificity from differential ordering cost, not from a contact.
 
-M2 and M3 are the differentiators. M1 is where the hits probably are.
+M3 is where the hits probably are, on the evidence of `FINDINGS.md` F-6: the substitution displaces peptide position 6 by about 1 Å and that displacement propagates to positions 7–9, which carry no sequence difference but are the accessible ones, and which is exactly where the 7OW6 TCR reads. M2 remains a differentiator. M1 is the hardest, for the reason above.
 
 > **Critical:** the scoring must not be blind to M2 and M3. See §7.2.
 
@@ -379,9 +379,9 @@ Worked examples, 3 targets × 2 seeds, 12 hours available:
 
 | Arm | Count |
 |---|---|
-| M1 direct electrostatic | 9 |
+| M1 direct electrostatic | 4 |
 | M2 composite surface | 5 |
-| M3 conformational selection | 4 |
+| M3 conformational selection | 9 |
 | Affinity-only control | 1 |
 | Reserve (highest composite, any mechanism) | 1 |
 
@@ -389,7 +389,7 @@ Worked examples, 3 targets × 2 seeds, 12 hours available:
 
 **Affinity-only control:** the design that would win if ranked by confidence against T+ alone, ignoring specificity. If it binds all three targets while specificity-ranked designs do not, that is direct evidence the objective was right. **Place around rank 10** so it is still tested if only part of the list is selected.
 
-> **n = 20 cannot support an M1/M2/M3 comparison.** At a ~27% base rate split 9/5/4 you get two or three hits per arm. **Label the comparison exploratory in every output.** Do not report it as a result.
+> **n = 20 cannot support an M1/M2/M3 comparison.** At a ~27% base rate split 4/5/9 you get two or three hits per arm. **Label the comparison exploratory in every output.** Do not report it as a result.
 
 ---
 

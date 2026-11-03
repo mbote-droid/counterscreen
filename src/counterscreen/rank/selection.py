@@ -4,13 +4,14 @@ Fill the allocation from cluster representatives, place the affinity-only
 control at approximately rank 10, and promote the next representative wherever
 the prescreen raises a flag.
 
-**Why the submission order needs no invention.** `CLAUDE.md` section 11
-allocates M1 nine slots, M2 five, M3 four, plus the affinity-only control and
-a reserve, and asks for the control at "approximately rank 10". Filling the
-arms in order puts M1 at ranks 1-9, which places the control at rank 10
-exactly. The remaining arms follow and the reserve closes the list at 20. The
-instruction and the allocation agree, so no interleaving scheme had to be
-chosen.
+**The control's rank is explicit, not incidental.** An earlier version of
+this module derived it: M1 held nine slots, so filling arms in order put the
+control at rank 10 by arithmetic. Amendment A7 then moved M1 to four and M3 to
+nine, which would silently have placed the control at rank 5. Since
+`CLAUDE.md` section 11 asks for approximately rank 10 *so that it is still
+tested if only part of the list is selected*, a rank that drifts with the
+allocation defeats the purpose. It now comes from
+``SelectionConfig.affinity_control_rank`` and is clamped to the list length.
 
 **Why the control sits there at all.** It is the design that would win if
 ranked on confidence against T+ alone, ignoring specificity. Section 11 puts
@@ -115,11 +116,12 @@ def select(
         best = min(leftovers, key=lambda e: (-e.m_mut, -e.m_pep, e.design_id))
         reserve = best.design_id
 
-    submitted: list[str] = [entry.design_id for entry in picked[Arm.M1]]
-    control_rank = len(submitted) + 1
-    submitted.append(affinity_control)
-    for arm in (Arm.M2, Arm.M3):
-        submitted.extend(entry.design_id for entry in picked[arm])
+    from_arms: list[str] = [entry.design_id for arm in ARM_ORDER for entry in picked[arm]]
+    # Rank 10 of the submitted list, or the end of it if the arms came up
+    # short. One-based in the specification, zero-based here.
+    control_index = min(max(settings.affinity_control_rank - 1, 0), len(from_arms))
+    submitted = [*from_arms[:control_index], affinity_control, *from_arms[control_index:]]
+    control_rank = control_index + 1
     if reserve is not None:
         submitted.append(reserve)
 

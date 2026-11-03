@@ -26,9 +26,9 @@ def arm_entries(arm: Arm, count: int, prefix: str) -> list[RankEntry]:
 
 def full_pool(extra: int = 3) -> dict[Arm, list[RankEntry]]:
     return {
-        Arm.M1: arm_entries(Arm.M1, 9 + extra, "m1_"),
+        Arm.M1: arm_entries(Arm.M1, 4 + extra, "m1_"),
         Arm.M2: arm_entries(Arm.M2, 5 + extra, "m2_"),
-        Arm.M3: arm_entries(Arm.M3, 4 + extra, "m3_"),
+        Arm.M3: arm_entries(Arm.M3, 9 + extra, "m3_"),
     }
 
 
@@ -40,9 +40,9 @@ def test_the_registered_allocation_is_filled() -> None:
     # The reserve is drawn from any mechanism, so it is excluded before
     # counting what each arm's own allocation contributed.
     allocated = [d for d in selection.submitted if d not in {CONTROL, selection.reserve}]
-    assert sum(1 for d in allocated if d.startswith("m1_")) == 9
+    assert sum(1 for d in allocated if d.startswith("m1_")) == 4
     assert sum(1 for d in allocated if d.startswith("m2_")) == 5
-    assert sum(1 for d in allocated if d.startswith("m3_")) == 4
+    assert sum(1 for d in allocated if d.startswith("m3_")) == 9
     assert selection.complete
 
 
@@ -53,8 +53,8 @@ def test_the_submission_holds_exactly_twenty_designs() -> None:
 
 def test_each_arm_takes_its_best_representatives() -> None:
     selection = select(full_pool(), CONTROL)
-    chosen = [d for d in selection.submitted if d.startswith("m1_")]
-    assert chosen == [f"m1_{i}" for i in range(9)]
+    chosen = [d for d in selection.submitted if d.startswith("m1_") and d != selection.reserve]
+    assert chosen == [f"m1_{i}" for i in range(4)]
 
 
 def test_no_design_appears_twice() -> None:
@@ -66,7 +66,12 @@ def test_no_design_appears_twice() -> None:
 
 
 def test_the_affinity_control_lands_at_rank_ten() -> None:
-    """M1 takes ranks 1-9, so the control falls at 10 without any interleaving."""
+    """Rank 10 comes from the config, not from how big M1 happens to be.
+
+    Amendment A7 moved M1 from nine slots to four. A rank derived from M1's
+    size would have silently become 5, which defeats section 11's reason for
+    the placement: it must still be tested if only part of the list is used.
+    """
     selection = select(full_pool(), CONTROL)
     assert selection.affinity_control_rank == 10
     assert selection.submitted[9] == CONTROL
@@ -111,10 +116,10 @@ def test_a_short_arm_is_recorded_rather_than_topped_up_from_elsewhere() -> None:
     pool = full_pool()
     pool[Arm.M3] = arm_entries(Arm.M3, 1, "m3_")
     selection = select(pool, CONTROL)
-    assert selection.shortfalls == ((Arm.M3, 3),)
+    assert selection.shortfalls == ((Arm.M3, 8),)
     assert not selection.complete
     allocated = [d for d in selection.submitted if d not in {CONTROL, selection.reserve}]
-    assert sum(1 for d in allocated if d.startswith("m1_")) == 9
+    assert sum(1 for d in allocated if d.startswith("m1_")) == 4
     assert sum(1 for d in allocated if d.startswith("m3_")) == 1
 
 
@@ -135,9 +140,9 @@ def test_a_flagged_design_is_replaced_by_the_next_representative() -> None:
 
     after = promote(pool, CONTROL, flagged=frozenset({"m1_0"}))
     assert "m1_0" not in after.submitted
-    assert "m1_9" in after.submitted
+    assert "m1_4" in after.submitted
     allocated = [d for d in after.submitted if d not in {CONTROL, after.reserve}]
-    assert sum(1 for d in allocated if d.startswith("m1_")) == 9
+    assert sum(1 for d in allocated if d.startswith("m1_")) == 4
     assert after.complete
 
 
@@ -165,7 +170,7 @@ def test_flagging_more_than_an_arm_can_replace_reports_a_shortfall() -> None:
 
 def test_the_allocation_comes_from_the_registered_config() -> None:
     config = SelectionConfig()
-    assert (config.m1, config.m2, config.m3) == (9, 5, 4)
+    assert (config.m1, config.m2, config.m3) == (4, 5, 9)
     assert config.total == SUBMITTED_DESIGNS
 
 

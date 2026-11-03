@@ -114,7 +114,7 @@ def test_truncation_boundaries_must_be_ordered(tmp_path: Path) -> None:
 
 def test_allocation_must_sum_to_twenty(tmp_path: Path) -> None:
     document = {**MINIMAL, "selection": {"m1": 10}}
-    with pytest.raises(ConfigError, match="sums to 21"):
+    with pytest.raises(ConfigError, match="sums to 26"):
         load_config(write(tmp_path, document))
 
 
