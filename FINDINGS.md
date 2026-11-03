@@ -304,3 +304,43 @@ mechanism currently allocated four designs, and avoids the one allocated nine.
 - [R9] reported salt-bridge discrimination on the **9-mer** on 9UV8, a
   different peptide length and a different structure. These results do not
   contradict it; they say it does not transfer to the 10-mer complex.
+
+
+---
+
+## F-7 · Deriving the hotspots narrowed M1 further than A8 allowed for
+
+**Believed.** Amendment A8 redefined M1, after F-5, as targeting either the
+solvent-accessible face of OD1 **or** displacement of the weaker Gln70
+contacts to OD2 at 3.08 Å and 3.58 Å. Two routes were thought to remain.
+
+**Checked.** Deriving the M1 hotspot scheme from the prepared target rather
+than writing residue numbers by hand. The rule selects carboxylate oxygens a
+probe can reach, then the HLA residues hydrogen-bonding *those* oxygens,
+excluding arginine. It returned a single hotspot: the aspartate itself, on
+OD1.
+
+Gln70 did not appear, and the reason is that the two conditions do not
+intersect. Gln70 coordinates **OD2**, whose SASA is **0.0 Å²**. A binder
+approaching from solvent cannot reach OD2 to compete for it. The only
+reachable oxygen, OD1, is coordinated solely by Arg114, which is not
+displaceable.
+
+**Changed.** The second of A8's two routes is closed. **M1 reduces to one
+thing: contact the 6.4 Å² accessible face of OD1.** A8 is not wrong, but it
+offered an option the geometry does not support, and that would not have
+surfaced if the hotspots had been typed from a figure instead of derived. The
+arm is still not retired — 6.4 Å² is reachable — but it is now a single
+narrow target rather than a choice of two.
+
+For contrast, the same derivation applied to the other arms produced:
+
+| Arm | Hotspots | Rule |
+|---|---|---|
+| M1 | `C6` | reachable carboxylate oxygens plus displaceable partners |
+| M2 | `A70, A73, A77, A97, A114, A147, A155, A156` | HLA within 5 Å of the aspartate side chain |
+| M3 | `C6, C7, C8, C9` | CA displacement ≥ 0.4 Å between complexes **and** SASA ≥ 10 Å² |
+
+M2 recovers the Asp6-Arg114-Gln70 network §4 names and adds Thr73, Asp77,
+Ile97, Trp147, Gln155 and Gln156, which the specification did not list. M3
+recovers exactly the propagating displacement of F-6.
