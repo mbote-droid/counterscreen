@@ -7,7 +7,7 @@ that produced it is indistinguishable from one that was never computed.
 
 Every numeric claim is written as a key:
 
-    The measured false-accept rate was [[far.point]] (95% CI
+    The measured false-accept rate was [[far.point]] ([[ci.level]] CI
     [[far.ci_lo]]-[[far.ci_hi]]).
 
 :func:`resolve` fills those in from the result metrics, and :func:`check`
@@ -22,13 +22,22 @@ verify rather than take on trust.
 **Exclusions beyond what section 9b specifies.** The registered rule names
 one exception, a literature value carrying a reference marker. A checker with
 only that exception rejects its own document: headings, numbered lists,
-section cross-references, table rules, ratios such as 1:1, anything inside
-backticks, and a stated confidence level like "95% CI" are all bare numerals
-by the letter of the rule. Each is document structure or a registered design
-choice rather than a measured claim, so each is masked before the scan, named
-as a pattern at the top of this module, and covered by its own test. They are
+section cross-references, table rules, ratios such as 1:1 and anything inside
+backticks are all bare numerals by the letter of the rule. Each is document
+structure rather than a claim, so each is masked before the scan, named as a
+pattern at the top of this module, and covered by its own test. They are
 additions to the registered rule and are listed here so they can be argued
 with rather than discovered.
+
+**A stated confidence level is not among them**, and the alternative was
+carried open as `BUILD_JOURNAL.md` ISSUE-011 until it was decided. Masking
+``95% CI`` would have exempted the one number in that sentence that can go
+stale against the code: the interval is computed from
+:data:`counterscreen.core.intervals.CONFIDENCE_LEVEL`, and prose that repeats
+the level by hand disagrees with the computation the moment either moves.
+Registered constants are instead available as keys through
+:data:`REGISTERED`, so the sentence cites the level the interval was actually
+computed at, and no exclusion is needed. A result file cannot shadow them.
 
 **The honest limit, stated here as `build_rules.pdf` section VIII states it
 for its own checker.** This verifies that a number equals the metric it cites.
@@ -45,6 +54,8 @@ import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+from counterscreen.core.intervals import level_label
+
 #: Significant digits every metric is rounded to, so byte-identical output
 #: survives platform float noise (`build_rules.pdf` section 2.6).
 SIG_DIGITS = 6
@@ -57,11 +68,13 @@ HEADING = re.compile(r"^#{1,6}\s+\d+(?:\.\d+)*[a-z]?")
 LIST_MARKER = re.compile(r"^\s*\d+[.)]\s")
 TABLE_RULE = re.compile(r"^\|[\s|:-]+\|$")
 RATIO = re.compile(r"\b\d+:\d+\b")
-#: A stated confidence level is a registered design choice, not a measured
-#: result, and `METHODS.md` section 8.5 already writes it bare beside the
-#: keys it qualifies. See the note on exclusions in the module docstring.
-CONFIDENCE_LEVEL = re.compile(r"\b\d{2}(?:\.\d+)?\s*%\s*(?:CI\b|confidence)", re.IGNORECASE)
 NUMERAL = re.compile(r"\d")
+
+#: Keys every document may cite without a result file, because they are
+#: registered constants rather than measurements. They take precedence over
+#: the metrics, so a result file cannot redefine the level its own interval
+#: was computed at.
+REGISTERED: Mapping[str, object] = {"ci.level": level_label()}
 
 
 class ViolationKind(enum.StrEnum):
@@ -114,6 +127,11 @@ def _format(value: object) -> str:
     return str(value)
 
 
+def available(metrics: Mapping[str, object]) -> dict[str, object]:
+    """Every key a document may cite: the metrics, plus registered constants."""
+    return {**flatten(metrics), **REGISTERED}
+
+
 def resolve(template: str, metrics: Mapping[str, object]) -> str:
     """Replace every key with its value, leaving unknown keys in place.
 
@@ -121,7 +139,7 @@ def resolve(template: str, metrics: Mapping[str, object]) -> str:
     visible in the output and :func:`check` reports them, so a missing metric
     cannot be mistaken for a rendered one.
     """
-    flat = flatten(metrics)
+    flat = available(metrics)
 
     def substitute(match: re.Match[str]) -> str:
         key = match.group(1)
@@ -139,13 +157,12 @@ def _mask(line: str) -> str:
     masked = SECTION_REFERENCE.sub(" ", masked)
     masked = HEADING.sub(" ", masked)
     masked = LIST_MARKER.sub(" ", masked)
-    masked = CONFIDENCE_LEVEL.sub(" ", masked)
     return RATIO.sub(" ", masked)
 
 
 def find_unknown_keys(template: str, metrics: Mapping[str, object]) -> list[Violation]:
-    """Find keys with no matching entry in the metrics."""
-    flat = flatten(metrics)
+    """Find keys with no matching entry in the metrics or the constants."""
+    flat = available(metrics)
     found: list[Violation] = []
     for number, line in enumerate(template.splitlines(), start=1):
         for match in KEY.finditer(line):
@@ -168,7 +185,8 @@ def find_uncited_numerals(template: str) -> list[Violation]:
     reference marker tying them to `REFERENCES.md`, so a line containing one is
     skipped. Section references, headings, list markers, table rules, ratios
     such as 1:1, and anything inside backticks are structure rather than
-    claims, and are masked before the scan.
+    claims, and are masked before the scan. A stated confidence level is not
+    masked: it is cited through ``[[ci.level]]`` instead.
     """
     found: list[Violation] = []
     for number, line in enumerate(template.splitlines(), start=1):

@@ -1,11 +1,13 @@
 """Claim checker contract (DESIGN.md section 9b): no number typed by hand."""
 
+import statistics
 import time
 from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
 
+from counterscreen.core.intervals import CONFIDENCE_LEVEL, Z_TWO_SIDED, level_label
 from counterscreen.report.claims import (
     SIG_DIGITS,
     Violation,
@@ -107,8 +109,6 @@ def test_a_literature_value_with_a_reference_marker_is_allowed() -> None:
         "Use `uv lock --check` in CI.",
         "The standard fit assumes a 1:1 interaction.",
         "| --- | --- |",
-        "Measured at 95% CI by the Wilson method.",
-        "Reported with a 95 % confidence interval.",
     ],
 )
 def test_structure_and_references_are_not_claims(line: str) -> None:
@@ -165,7 +165,7 @@ def test_a_clean_document_passes_every_check(tmp_path: Path) -> None:
     template = (
         "## Results\n"
         "The measured false-accept rate was [[far.point]] "
-        "(95% CI [[far.ci_lo]]-[[far.ci_hi]]).\n"
+        "([[ci.level]] CI [[far.ci_lo]]-[[far.ci_hi]]).\n"
         "Base rate was 26.8% [R14].\n"
     )
     assert check(template, METRICS, document=document, results=[result]) == []
@@ -185,3 +185,34 @@ def test_every_failure_mode_is_reported_together(tmp_path: Path) -> None:
         ViolationKind.UNCITED_NUMERAL,
         ViolationKind.STALE_DOCUMENT,
     }
+
+
+# --- The confidence level is cited, not exempted (BUILD_JOURNAL ISSUE-011) ---
+
+
+def test_a_hand_typed_confidence_level_is_a_bare_numeral() -> None:
+    """The decision recorded against ISSUE-011: no exclusion for "95% CI".
+
+    It is the one number in that sentence that can disagree with the code
+    computing the interval, so exempting it would have defeated the rule at
+    exactly the point the rule is for.
+    """
+    assert len(find_uncited_numerals("Measured at 95% CI by the Wilson method.")) == 1
+    assert len(find_uncited_numerals("Reported with a 95 % confidence interval.")) == 1
+
+
+def test_the_registered_level_resolves_without_a_result_file() -> None:
+    assert resolve("([[ci.level]] CI)", {}) == f"({level_label()} CI)"
+    assert find_unknown_keys("[[ci.level]]", {}) == []
+
+
+def test_a_result_file_cannot_redefine_the_registered_level() -> None:
+    """Otherwise a run could state a level its interval was not computed at."""
+    assert resolve("[[ci.level]]", {"ci": {"level": "80%"}}) == level_label()
+
+
+def test_the_level_and_its_quantile_cannot_disagree() -> None:
+    """The quantile is derived from the level, so there is nothing to sync."""
+    coverage = 2.0 * statistics.NormalDist().cdf(Z_TWO_SIDED) - 1.0
+    assert coverage == pytest.approx(CONFIDENCE_LEVEL)
+    assert pytest.approx(1.959963984540054, abs=1e-12) == Z_TWO_SIDED

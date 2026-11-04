@@ -53,11 +53,11 @@ from enum import StrEnum
 import numpy as np
 from numpy.typing import NDArray
 
+from counterscreen.core.intervals import Z_TWO_SIDED
+
 #: The challenge's alternative binding criterion when no K_D can be fitted.
 SHIFT_THRESHOLD_PERCENT = 300.0
 
-#: Two-sided 95% normal quantile, used for the log-space ratio interval.
-Z_95 = 1.959963984540054
 
 #: Below this the runs test has no power and is not reported.
 MIN_RESIDUALS_FOR_RUNS_TEST = 8
@@ -243,7 +243,7 @@ def specificity_ratio(decoy: SteadyStateFit, target: SteadyStateFit) -> Specific
     # Delta method: sigma_ln(x) ~= sigma_x / x. First order, so it degrades as
     # relative error grows; see the module docstring for the validity range.
     log_stderr = math.sqrt(decoy.relative_stderr**2 + target.relative_stderr**2)
-    spread = Z_95 * log_stderr
+    spread = Z_TWO_SIDED * log_stderr
     return SpecificityRatio(
         ratio=ratio,
         ci_low=ratio * math.exp(-spread),

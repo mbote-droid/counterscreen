@@ -123,8 +123,12 @@ Headings, numbered lists, section cross-references, table rules, ratios like
 **Fix.** Each masked before the scan, named as a pattern, and listed in the
 module docstring as an addition to the registered rule.
 **Regression test.** One test per exclusion.
-**Status.** The confidence-level exclusion is **open for decision** — the
-alternative is a `[[far.ci_level]]` key so nothing is exempted.
+**Decided, 4 Nov.** The confidence-level exclusion is removed. It is the one
+number in that sentence that can disagree with the code computing the
+interval, so it is cited through a key like any other. Registered constants
+are available as keys without a result file (`REGISTERED` in
+`report/claims.py`), the level lives in `core/intervals.py`, and the normal
+quantile is derived from it rather than typed beside it. See FINDINGS F-4.
 
 ### ISSUE-012 · Control rank was coupled to M1's allocation · 3 Nov
 

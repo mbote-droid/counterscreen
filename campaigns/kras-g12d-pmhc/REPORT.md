@@ -77,7 +77,7 @@ hits at best.
 | Quantity | Value |
 |---|---|
 | False-reject rate, positive controls | `[[frr.failures]]` of `[[frr.n]]`, upper bound `[[frr.upper]]` |
-| False-accept rate, adversarial designs | `[[far.point]]` (95% CI `[[far.ci_lo]]`–`[[far.ci_hi]]`) |
+| False-accept rate, adversarial designs | `[[far.point]]` (`[[ci.level]]` CI `[[far.ci_lo]]`–`[[far.ci_hi]]`) |
 | Code mutation score | `[[mutation.score]]` |
 
 Adversarial sample size was registered before running: 10 per class, 40 total

@@ -165,12 +165,24 @@ cross-references, table rules, ratios such as `1:1`, and — the one that
 matters — the stated confidence level in `(95% CI [[far.ci_lo]]-[[far.ci_hi]])`,
 which §8.5 already writes bare beside the keys it qualifies.
 
-**Changed.** Each of these is document structure or a registered design choice
-rather than a measured claim, so each is masked before the scan, named as a
-pattern, and covered by a test. They are additions to the registered rule and
-are listed in the module docstring so they can be argued with. The alternative
-is to make the confidence level a key as well, at the cost of clumsier prose.
-Open for decision.
+**Changed.** Headings, numbered lists, section cross-references, table rules,
+ratios and inline code are document structure rather than measured claims, so
+each is masked before the scan, named as a pattern, and covered by a test.
+They are additions to the registered rule and are listed in the module
+docstring so they can be argued with.
+
+**Decided, 4 November.** The confidence level is *not* masked. It looked like
+the clearest case for an exclusion — a registered design choice, not a
+measurement — but it is the one number in that sentence that can go stale
+against the code: the interval is computed from
+`counterscreen.core.intervals.CONFIDENCE_LEVEL`, and prose repeating the level
+by hand disagrees with the computation as soon as either moves. Exempting it
+would have defeated the rule at the point the rule is for. Registered
+constants are instead citable as keys, so `METHODS.md` §8.5 now reads
+`` `[[ci.level]]` CI ``; a result file cannot shadow them, and the normal
+quantile is derived from the level rather than written beside it, so the two
+cannot disagree either. The cost is one more key in the prose, which is the
+cheaper of the two mistakes.
 
 ---
 

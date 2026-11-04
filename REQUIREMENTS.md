@@ -93,6 +93,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 |---|---|---|---|
 | R-01 | Every number in a generated document shall resolve to a result file | unknown key reported with its line | **verified** |
 | R-02 | A bare numeral outside a key shall fail the build | one test per allowed exclusion | **verified** |
+| R-08 | A hand-typed confidence level shall fail the build | `95% CI` in prose is reported as a bare numeral | **verified** — the exclusion was removed (`FINDINGS.md` F-4) |
+| R-09 | A registered constant shall be citable without a result file, and a result file shall not redefine one | `[[ci.level]]` resolves against `{}` and is not shadowed | **verified** |
+| R-10 | The interval's confidence level and its normal quantile shall not be able to disagree | quantile derived from the level; coverage recomputed in a test | **verified** |
 | R-03 | A result newer than the document shall fail the build | mtime comparison | **verified** |
 | R-04 | Metrics shall round to a fixed significance | 6 significant digits | **verified** |
 | R-05 | The funnel shall balance stage to stage | unbalanced funnel refused at construction | **verified** |
@@ -115,9 +118,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 54 |
+| Verified | 57 |
 | Pending | 4 |
-| **Total** | **58** |
+| **Total** | **61** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

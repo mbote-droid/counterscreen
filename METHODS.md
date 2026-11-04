@@ -186,7 +186,7 @@ Deliberately invalid designs were pushed through the complete ranking pipeline a
 
 Sample size was registered before running: **10 adversarial designs per class, 40 in total** (`PREREGISTRATION.md` §7b). Registering n matters because the width of this interval is the result; choosing n after seeing how many were accepted would let the interval be tuned.
 
-Measured false-accept rate: `[[far.point]]` (95% CI `[[far.ci_lo]]`–`[[far.ci_hi]]`), by the Wilson method, or by the rule of three where zero adversarial designs were accepted. `[FILL]`
+Measured false-accept rate: `[[far.point]]` (`[[ci.level]]` CI `[[far.ci_lo]]`–`[[far.ci_hi]]`), by the Wilson method, or by the rule of three where zero adversarial designs were accepted. `[FILL]`
 
 Code-level mutation score, fraction of deliberate one-line defects killed by the test suite: `[[mutation.score]]`. Surviving mutants and the tests added in response: `[FILL]`
 

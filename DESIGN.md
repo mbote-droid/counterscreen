@@ -282,7 +282,7 @@ and a contract test asserts the order is non-decreasing in it.
 **Every numeric claim in a generated document is written as a key, not a value:**
 
 ```
-The measured false-accept rate was [[far.point]] (95% CI [[far.ci_lo]]–[[far.ci_hi]]).
+The measured false-accept rate was [[far.point]] ([[ci.level]] CI [[far.ci_lo]]–[[far.ci_hi]]).
 ```
 
 `report/` resolves keys against the result files and emits the final document. A **claim checker** runs in CI and fails if:
