@@ -59,3 +59,7 @@ CLAUDE.md
 
 # Local-only tooling kept out of the repository.
 .local/
+
+# Source structure downloads. Prepared targets under campaigns/*/targets/ are
+# tracked; the mirror they were built from is not.
+structures/

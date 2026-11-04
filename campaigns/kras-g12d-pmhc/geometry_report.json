@@ -1,0 +1,57 @@
+{
+  "D1_wild_type.pdb": {
+    "chain_breaks": 0,
+    "cis_peptides": 0,
+    "clashes": 0,
+    "disulfides": 3,
+    "non_l_residues": 0,
+    "passed": true,
+    "ramachandran_evaluated": 378,
+    "ramachandran_outliers": 1,
+    "reasons": []
+  },
+  "D1_wild_type_platform.pdb": {
+    "chain_breaks": 0,
+    "cis_peptides": 0,
+    "clashes": 0,
+    "disulfides": 1,
+    "non_l_residues": 0,
+    "passed": true,
+    "ramachandran_evaluated": 185,
+    "ramachandran_outliers": 1,
+    "reasons": []
+  },
+  "D2_peptide_free.pdb": {
+    "chain_breaks": 0,
+    "cis_peptides": 0,
+    "clashes": 0,
+    "disulfides": 3,
+    "non_l_residues": 0,
+    "passed": true,
+    "ramachandran_evaluated": 371,
+    "ramachandran_outliers": 1,
+    "reasons": []
+  },
+  "T_plus.pdb": {
+    "chain_breaks": 0,
+    "cis_peptides": 0,
+    "clashes": 0,
+    "disulfides": 3,
+    "non_l_residues": 0,
+    "passed": true,
+    "ramachandran_evaluated": 379,
+    "ramachandran_outliers": 1,
+    "reasons": []
+  },
+  "T_plus_platform.pdb": {
+    "chain_breaks": 0,
+    "cis_peptides": 0,
+    "clashes": 0,
+    "disulfides": 1,
+    "non_l_residues": 0,
+    "passed": true,
+    "ramachandran_evaluated": 186,
+    "ramachandran_outliers": 1,
+    "reasons": []
+  }
+}

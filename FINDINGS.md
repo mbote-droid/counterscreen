@@ -416,3 +416,69 @@ bootstrap over residuals, or refitting with `ln K_D` as the parameter. The
 relative standard error is reported alongside every ratio so the regime is
 visible. Recorded here because a ratio interval that is itself unreliable is
 exactly the kind of number that reads as rigour without being it.
+
+
+---
+
+## F-9 · Experimentally determined structures failed the geometric validity gate
+
+**Believed.** Gate G0 exists to reject non-physical generated backbones before
+GPU time is spent on them (`PROTOCOL.md` §8). Its Ramachandran criterion was
+documented from the start as a coarse region test rather than a reference
+contour, with the stated expectation that it "will over-report in the tails".
+How badly was unmeasured.
+
+**Checked.** Running G0 over the five prepared targets — all derived from
+deposited crystal structures — as part of building the workflow:
+
+| Structure | Outlier fraction | Verdict |
+|---|---|---|
+| T+ (7OW6, full) | 0.5% | pass |
+| D2 (peptide-free) | 0.5% | pass |
+| **D1 (7OW5, full)** | **1.1%** | **fail** |
+| **T+ platform** | **1.1%** | **fail** |
+| **D1 platform** | **1.6%** | **fail** |
+
+`PROTOCOL.md` §5.3 governs this case directly: *a positive control failing a
+gate is a false reject, and it means the gate is wrong, not the control.*
+Experimentally solved coordinates are the strongest positive control available
+for geometric validity.
+
+Diagnosing the four flagged residues in D1 showed that **three were artefacts
+of how the regions were drawn, not conformations**:
+
+| Residue | φ, ψ | Cause |
+|---|---|---|
+| Gly16 | 100, −59 | Fell in a 10° band between two adjacent rectangles |
+| Gly162 | −112, −99 | 9° below a box edge, in the same kind of gap |
+| His84 | **178**, 138 | φ near +180; the regions did not wrap, so a residue 2° from the beta basin edge was treated as far from it |
+| Asp29 | 45, −133 | A genuinely unusual conformation |
+
+**Changed.** Two defects in the implementation, both structural rather than a
+matter of threshold:
+
+1. **Adjacent basins now meet.** The right-handed alpha box ended at ψ = 50
+   and the beta box began at ψ = 60, so a residue was an outlier purely for
+   sitting between two rectangles. They are now contiguous.
+2. **φ and ψ are treated as periodic.** Boxes covering φ near +180 were added
+   and angles are folded into [−180, 180) before testing.
+
+All five structures now pass, at 0.26% outliers for D1 — the single genuine
+one. The gate was **not** loosened in threshold: 1% stands as registered, the
+deliberately disallowed conformation φ = ψ = 0 is still rejected for both
+alanine and glycine, a wholly disallowed chain still fails at 100%, and the
+mirrored-chirality check is untouched. Four regression tests pin this,
+including one asserting that every deposited structure passes.
+
+**Why this matters beyond the fix.** Had this not surfaced, G0 would have
+rejected roughly 1% of *correct* geometry. Applied to generated backbones it
+would have produced a false-reject rate attributable to the gate's
+implementation rather than to the designs, and the funnel would have reported
+it as designs failing. The project's own false-reject discipline (§5.4) exists
+for exactly this, and it was found by running the gate against reality rather
+than against synthetic fixtures — which had all passed.
+
+**Still owed.** The criterion remains coarse. The differential test against a
+reference implementation (`build_rules.pdf` §2.7) is still outstanding; what
+has changed is that it now agrees with five experimental structures rather
+than disagreeing with three of them.

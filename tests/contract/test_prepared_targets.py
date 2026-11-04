@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from counterscreen.geometry.structure import Structure
-from counterscreen.geometry.validity import find_disulfides
+from counterscreen.geometry.validity import check_geometry, find_disulfides, is_ramachandran_outlier
 from counterscreen.targets.prepare import (
     DISULFIDE_MAX_ANGSTROM,
     MIN_PMHC_DISULFIDES,
@@ -110,3 +110,41 @@ def test_truncation_leaves_the_peptide_untouched() -> None:
     from counterscreen.targets.prepare import backbone_rmsd  # noqa: PLC0415
 
     assert backbone_rmsd(load("T_plus_platform"), load("T_plus"), "C") == pytest.approx(0.0)
+
+
+# --- G0 against experimental reality ----------------------------------------
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["T_plus", "D1_wild_type", "D2_peptide_free", "T_plus_platform", "D1_wild_type_platform"],
+)
+def test_deposited_structures_pass_the_geometry_gate(name: str) -> None:
+    """The strongest available check on G0's calibration.
+
+    These are experimentally determined coordinates. A gate built to reject
+    non-physical generated backbones must not reject them: PROTOCOL.md section
+    5.3 is explicit that a positive control failing a gate means the gate is
+    wrong, not the control. Three of them did fail before the region
+    definitions were corrected (FINDINGS F-9).
+    """
+    report = check_geometry(load(name))
+    assert report.passed, report.reasons()
+
+
+def test_a_residue_near_the_phi_wrap_is_not_an_outlier() -> None:
+    """Phi is periodic: 178 degrees is two degrees from the beta basin edge."""
+    assert not is_ramachandran_outlier("HIS", 178.0, 138.0)
+    assert not is_ramachandran_outlier("HIS", -178.0, 138.0)
+
+
+def test_adjacent_basins_leave_no_dead_zone() -> None:
+    """A residue must not be an outlier for sitting between two rectangles."""
+    for psi in (45.0, 50.0, 55.0, 60.0, 65.0):
+        assert not is_ramachandran_outlier("ALA", -100.0, psi), psi
+
+
+def test_the_gate_still_rejects_a_disallowed_conformation() -> None:
+    """The correction must not have loosened the gate into uselessness."""
+    assert is_ramachandran_outlier("ALA", 0.0, 0.0)
+    assert is_ramachandran_outlier("GLY", 0.0, 0.0)

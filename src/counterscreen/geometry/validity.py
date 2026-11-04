@@ -44,10 +44,26 @@ IDEAL_C_N_CA_DEGREES = 121.7
 
 #: Coarse allowed (phi, psi) boxes for a general residue, in degrees.
 #: Provisional; see the module docstring.
+#:
+#: Two properties are load-bearing and were both absent in the first version,
+#: which flagged three experimentally determined residues as outliers for
+#: reasons that were artefacts of how the boxes were drawn
+#: (`FINDINGS.md` F-9):
+#:
+#: 1. **Adjacent basins must touch.** The right-handed alpha and beta boxes
+#:    previously ended at psi = 50 and began at psi = 60, leaving a ten-degree
+#:    band in which a residue was an outlier only because it sat between two
+#:    rectangles. They now meet.
+#: 2. **Phi and psi are periodic.** The beta basin runs to phi = -180 and
+#:    continues past the wrap, so boxes covering phi near +180 are included.
+#:    Without them a residue at phi = 178 was treated as far from a basin whose
+#:    edge is two degrees away.
 GENERAL_REGIONS: "Regions" = (
     (-180.0, -20.0, 60.0, 180.0),  # beta sheet and polyproline II
-    (-180.0, -20.0, -180.0, -150.0),  # beta, psi wrapped past -180
-    (-160.0, -20.0, -90.0, 50.0),  # right-handed alpha
+    (-180.0, -20.0, -180.0, -150.0),  # beta, psi past the wrap
+    (150.0, 180.0, 60.0, 180.0),  # beta, phi past the wrap
+    (150.0, 180.0, -180.0, -150.0),  # beta, both past the wrap
+    (-160.0, -20.0, -120.0, 60.0),  # right-handed alpha, meeting beta at 60
     (20.0, 100.0, -20.0, 90.0),  # left-handed alpha
 )
 
@@ -173,7 +189,13 @@ class GeometryReport:
 Regions = tuple[tuple[float, float, float, float], ...]
 
 
+def _wrap(angle: float) -> float:
+    """Fold an angle into [-180, 180), so the two ends of the range meet."""
+    return (angle + 180.0) % 360.0 - 180.0
+
+
 def _in_region(phi: float, psi: float, regions: Regions) -> bool:
+    phi, psi = _wrap(phi), _wrap(psi)
     return any(
         lo_phi <= phi <= hi_phi and lo_psi <= psi <= hi_psi
         for lo_phi, hi_phi, lo_psi, hi_psi in regions

@@ -166,3 +166,17 @@ are not permitted through this proxy" (HTTP 403).
 **Diagnosis.** Proxy policy.
 **Fix.** Description and topics supplied to the user to paste by hand.
 **Regression test.** None.
+
+### ISSUE-016 · G0 rejected deposited crystal structures · 4 Nov
+
+**Symptom.** Running the workflow's geometry rule over the prepared targets,
+three of five failed G0 on Ramachandran outliers at 1.1-1.6%.
+**Diagnosis.** Three of the four flagged residues were implementation
+artefacts: two sat in a ten-degree dead band between adjacent allowed-region
+rectangles, and one at phi = 178 was mishandled because the regions did not
+wrap. See FINDINGS F-9.
+**Fix.** Adjacent basins made contiguous; phi and psi folded into
+[-180, 180) and boxes added past the wrap. Threshold unchanged at 1%.
+**Regression test.** `test_deposited_structures_pass_the_geometry_gate`
+asserts every prepared target passes, plus one test each for the wrap, the
+former dead zone, and that a disallowed conformation is still rejected.
