@@ -10,6 +10,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from counterscreen.core.config import load_config
 from counterscreen.targets.prepare import (
     backbone_rmsd,
     prepare,
@@ -21,18 +22,19 @@ from counterscreen.targets.prepare import (
 TCR_CHAINS = ("D", "E")
 PMHC_CHAINS = ("A", "B", "C")
 
-# SETUP.md section 2.5: alpha-1/alpha-2 platform, roughly 180 residues.
-PLATFORM_FIRST, PLATFORM_LAST = 1, 180
-
-_EXPECTED_ARGC = 3
+_EXPECTED_ARGC = 4
 
 
 def main(argv: list[str]) -> int:
     """Prepare every target from a directory of source mmCIF files."""
     if len(argv) != _EXPECTED_ARGC:
-        print("usage: prepare_targets.py <source-dir> <out-dir>", file=sys.stderr)
+        print("usage: prepare_targets.py <config.yaml> <source-dir> <out-dir>", file=sys.stderr)
         return 2
-    source, out = Path(argv[1]), Path(argv[2])
+    # DESIGN.md section 2: truncation boundaries are recorded in config, not
+    # written into this script, so the construct a campaign screened on can be
+    # read off its configuration afterwards.
+    config = load_config(Path(argv[1]))
+    source, out = Path(argv[2]), Path(argv[3])
 
     plan = [
         ("T_plus", "7OW6", PMHC_CHAINS, "C", "VVVGADGVGK"),
@@ -66,7 +68,12 @@ def main(argv: list[str]) -> int:
             # target, so they contribute nothing to discrimination while
             # costing most of the compute.
             groove = select_chains(target.structure, ["A", peptide_chain])
-            platform = truncate(groove, "A", PLATFORM_FIRST, PLATFORM_LAST)
+            platform = truncate(
+                groove,
+                "A",
+                config.truncation.first_residue,
+                config.truncation.last_residue,
+            )
             write_pdb(platform, out / f"{name}_platform.pdb")
             shifted = backbone_rmsd(platform, target.structure, peptide_chain)
             print(

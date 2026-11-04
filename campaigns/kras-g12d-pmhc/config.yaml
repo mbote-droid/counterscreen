@@ -1,0 +1,18 @@
+# Campaign configuration for KRAS G12D / HLA-A*11:01.
+#
+# Only values this campaign sets appear here. Everything else comes from the
+# registered defaults in counterscreen.core.config, and an unknown key is an
+# error rather than a silently ignored line, so a typo cannot leave a default
+# in force.
+
+campaign: kras-g12d-pmhc
+
+# DESIGN.md section 2 requires the screening-construct boundaries recorded
+# explicitly rather than defaulted: the alpha-1/alpha-2 platform a receptor
+# reads, dropping beta-2-microglobulin and the alpha-3 domain. Residues 1-180
+# of the heavy chain plus the peptide gives 190 residues against the full
+# complex's ~390, and the peptide CA RMSD against the full complex is 0.000 A,
+# which is the verification that section requires.
+truncation:
+  first_residue: 1
+  last_residue: 180

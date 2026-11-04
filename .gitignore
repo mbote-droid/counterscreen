@@ -56,3 +56,6 @@ desktop.ini
 # tracked; this file holds working instructions for the coding assistant and
 # stays out of the repository.
 CLAUDE.md
+
+# Local-only tooling kept out of the repository.
+.local/
