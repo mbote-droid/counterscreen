@@ -256,7 +256,7 @@ M_pep = C(T+) − C(D2)      peptide-dependence margin
 M_var = C(T+) − max C(D3..D5)   variant-discrimination margin (optional)
 ```
 
-**Margins must exceed prediction noise.** Report mean ± SD across seeds; require `M > 2 × pooled SD`. A one-side-chain difference produces small margins; without this guard the ranking is noise. Non-negotiable.
+**Margins must exceed prediction noise.** Report mean ± SD across seeds; require `M > 2 × pooled SD`. A one-side-chain difference produces small margins; without this guard the ranking is noise. Non-negotiable. The pooled SD here is measured across seeds within one design; amendment A9 in `PREREGISTRATION.md` settles how it combines with the §10 campaign noise floor, which the same symbol also named.
 
 **Confidence cutoff must be calibrated locally, not imported.** The frequently quoted 0.61 ipSAE cutoff comes from a meta-analysis of 3,766 binders where the best metric was **AF3 ipSAE_min**, reported as average precision, with the authors noting possible bias from designs pre-selected by AF2 ipAE [R2]. It does **not** transfer to a different model or metric. Derive the operating point from the Stage −1 control panel.
 
@@ -299,7 +299,7 @@ Document whichever path is taken and why.
 | G1 | scRMSD(monomer) ≤ 2.0 Å, **Cα atoms only, after Kabsch superposition**, best of 8 ProteinMPNN sequences; **and pLDDT ≥ 80 on the refolded prediction** | Standard designability criterion. The unit and superposition method are part of the specification, not decoration |
 | G2 | Confidence ≥ **locally calibrated** operating point | Derived in Stage −1. Do **not** import 0.61 — wrong model, wrong metric [R2] |
 | G3 | Peptide contact fraction ≥ control-panel reference | Calibrated in Stage −1 on the TCR and Liu binders, not guessed |
-| G4 | M_mut and M_pep > 2 × pooled SD | Margin must beat prediction noise |
+| G4 | M_mut and M_pep > 2 × pooled SD, the larger of the within-design and campaign estimates (amendment A9) | Margin must beat prediction noise |
 | **G5** | **Hydrophobic patch: largest contiguous solvent-exposed apolar patch on the refolded monomer, at or below the 90th percentile of the positive control panel** | §5.4 registers a negative control that must fail at a hydrophobic patch check, and v0.5 had no such gate, so that control had no failure point. Also a real expression and aggregation liability. Derivation rule, no free parameter, mirroring G3. CPU, seconds: runs after G1, before any co-folding. ΔΔG_spec remains a ranking feature and is still not a gate (§7.2) |
 | G6 | No buried unsatisfied charges in the T+ complex | Expression and folding liability |
 | G7 | `binder-prescreen --target kras-pmhc` = pass | 51 known TCRs from IEDB, VDJdb, PDB, patents; v0.5 released 27 Oct 2026 for this challenge [R15] |

@@ -32,7 +32,7 @@ the ones that actually occurred:
 | Funnel pathology | What it is here | Example |
 |---|---|---|
 | **Kinetic trap** | A choice that looks correct, and is correct, for the wrong reason — so it breaks silently when a neighbouring assumption moves | D-2 · the control's rank |
-| **Degenerate native states** | Two defensible methods that the specification supports equally, where picking by taste would be unregistered researcher freedom | D-5 · which pooled SD |
+| **Degenerate native states** | Two defensible methods that the specification supports equally, where picking by taste would be unregistered researcher freedom | D-5 · which pooled SD, resolved by amendment A9 on the asymmetry of their failure modes rather than by preference |
 | **Chaperone** | An external check that prevents a trap rather than detecting it afterwards | D-6 · types, tests, CI, and the reader |
 
 Each decision below states: the question, the candidate set, the coarse
@@ -293,19 +293,85 @@ misbehaves:
 
 The rung used is reported in every output, and descending is itself a result.
 
-**The degeneracy, still open.** The specification defines `pooled SD` **twice**
-and the definitions are not equivalent. `PROTOCOL.md` §7.1 and `DESIGN.md` §4
-define it per design, across that design's seeds. `PROTOCOL.md` §10 and
-`PREREGISTRATION.md` §5 describe a campaign-level noise floor measured once
-from five identical Day-1 runs. The same symbol sets **G4's denominator** and
-**the ranking tie tolerance**, and the two readings give different gate
-verdicts and different rankings.
+**The degeneracy, and how it was resolved.** The specification defines
+`pooled SD` **twice** and the definitions are not equivalent. `PROTOCOL.md`
+§7.1 and `DESIGN.md` §4 define it per design, across that design's seeds.
+`PROTOCOL.md` §10 and `PREREGISTRATION.md` §5 describe a campaign-level noise
+floor measured once from five identical Day-1 runs. The same symbol sets
+**G4's denominator** and **the ranking tie tolerance**, and the two readings
+give different gate verdicts and different rankings.
 
-This is a genuine degenerate state: two conformations the specification
-supports equally well. Resolving it by preference would be unregistered
-researcher freedom, so the implementation takes the tolerance as an **explicit
-argument** and imposes no answer. It must be settled by amendment before any
-design is scored.
+For two days this was carried as a genuine degenerate state — two conformations
+the specification supports equally well — and the implementation took the
+tolerance as an explicit argument so that no answer was imposed by taste. That
+is not a resting place: a gate with an unsettled denominator cannot be run, and
+settling it at the keyboard once the first scores were on screen is precisely
+the researcher freedom the pre-registration exists to remove. **Amendment A9
+closes it, and neither reading won.**
+
+The decisive observation is that the two readings fail in *different*
+directions, so the choice is not between a right one and a wrong one.
+
+| Reading | How it is estimated | How it fails |
+|---|---|---|
+| Within-design pooled seed SD | 4 degrees of freedom per arm, from this design's seeds | Volatile, and it sits in the **denominator** of a ratio test. Across a few hundred designs, the ones whose seeds happened to agree get a small denominator and pass on luck |
+| Campaign noise floor | 5 identical repeat runs, one input, one well-estimated number | Blind to design-specific noise. A conformationally loose design really is noisier than a rigid one, and this floor cannot see it |
+
+The first failure mode is not hypothetical and not new. It is the reason
+moderated variance estimators exist in differential-expression testing: a
+per-feature variance on a handful of replicates, used as the denominator of a
+t-like statistic across thousands of features, systematically promotes the
+features whose variance was *underestimated* [R28]. The analogue here is
+exact — the design is the feature, the seed is the replicate, G4 is the
+statistic — and the consequence is that the designs most likely to clear G4
+would be the ones the model happened to be quiet about, not the ones that
+discriminate.
+
+**The resolution: G4 divides by `max(within-design pooled SD, campaign floor)`.**
+
+Three properties recommend it over either reading alone, and over the
+alternatives considered:
+
+1. **It is weaker than neither reading.** A design that fails under either
+   definition still fails. So the resolution cannot have been chosen to let
+   anything through, which is the only question that matters for a rule
+   settled this late.
+2. **It is parameter-free.** A shrinkage estimator — the statistically
+   fashionable answer, and the better one with hundreds of designs in hand —
+   needs a shrinkage weight, and a weight registered after the degeneracy was
+   noticed is a new free parameter under a registered gate. A hard floor is
+   the non-parametric limit of the same idea.
+3. **Its errors run the right way.** The floor converts some false accepts
+   into false rejects. A false reject costs one design out of several hundred;
+   a false accept costs one of twenty submitted slots and, downstream, a
+   wet-lab measurement. `PROTOCOL.md` §3.5 makes that asymmetry the whole
+   point of the project.
+
+**The tie tolerance takes the campaign floor alone**, and here one reading is
+simply wrong rather than merely weaker. The tolerance compares *two different
+designs*. A per-design SD makes that comparison **asymmetric**: design A can
+sit inside B's tolerance while B sits outside A's, so whether two designs tie
+depends on which one is read first, and the grouping depends on input order. A
+pre-registered rank that is not reproducible is not registered. One campaign
+number keeps the tolerance a property of the measurement rather than of
+whichever designs happen to be in the input.
+
+**Where the resolution is enforced rather than described.**
+`counterscreen.core.noise.NoiseFloor` requires all four of metric, SD, repeat
+count and a provenance source — no defaults, so a campaign cannot gate on a
+floor nobody measured; it refuses a floor below the registered five repeats and
+refuses an SD of zero, since a stochastic co-folding model with no spread
+across repeats means the measurement failed, not that the model is exact. The
+floor is a **required** argument of `Margin.exceeds_noise`, so the weaker
+reading cannot be selected by leaving an argument out, and the metric is
+checked, so an ipSAE margin cannot be judged against a pLDDT floor.
+`rank_arm` and `tie_groups` take the floor itself and derive the tolerance from
+it, so there is no float in the signature for a design's own SD to be passed as.
+`tie_tolerance()` takes no argument at all, which is what keeps the 0.5 out of
+configuration. `tests/unit/test_noise.py` holds the two designs this is all
+for: one whose five seeds agree to six decimal places and passes the
+per-design reading on a near-zero denominator, and one genuinely noisy design
+that the campaign floor alone would have waved through.
 
 ---
 

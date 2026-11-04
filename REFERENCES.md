@@ -122,6 +122,13 @@ Model builds a rubric before reading submissions; inputs include participant met
 
 ---
 
+## Statistics
+
+**[R28]** `secondary` — Smyth, G. K. *Linear models and empirical Bayes methods for assessing differential expression in microarray experiments.* Statistical Applications in Genetics and Molecular Biology 3(1), Article 3 (2004). The moderated t-statistic: a per-feature variance estimated from a handful of replicates, used as the denominator of a t-like statistic across many features, promotes the features whose variance was underestimated; the fix is to shrink each estimate toward a pooled prior. Primary not read in this build.
+**Use:** the argument for amendment A9 only — G4 is the same ratio test with the design as the feature and the seed as the replicate, so a within-design pooled SD alone would select designs the model happened to be quiet about. **No quantitative claim in this project rests on this entry;** the registered resolution is a hard floor rather than a shrinkage estimator, because a shrinkage weight would be a new free parameter under a registered gate.
+
+---
+
 ## Reagents
 
 **[R25]** `verified` — Commercial HLA-A\*11:01 / β2m / KRAS G12D monomers and tetramers exist in both 9-mer (VVGADGVGK) and 10-mer (VVVGADGVGK) forms (e.g. Kactus Bio MHC-HM455B, MHC-HM420T). Confirms both presentations are experimentally tractable and that the 9-mer/10-mer distinction is real and consequential.

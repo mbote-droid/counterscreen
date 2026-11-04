@@ -112,7 +112,7 @@ M_var = C(T+) − max(C(D3..D5))     optional
 
 for confidence metric `C`, computed per seed. Report mean and SD. Gate on `M > 2 × pooled SD`.
 
-**Implementation note:** pooled SD must be computed across seeds *within a design*, not across designs. Across-design variance is signal, not noise. Getting this backwards would invert the gate.
+**Implementation note:** pooled SD must be computed across seeds *within a design*, not across designs. Across-design variance is signal, not noise. Getting this backwards would invert the gate. What G4 then divides by is a separate question, settled by amendment A9: the larger of this within-design SD and the §5 campaign noise floor.
 
 ### Contact analysis
 

@@ -57,7 +57,7 @@ A requirement with no verification method is not a requirement; it is a wish.
 | S-08 | No weighted composite shall be constructible | signature carries nothing weight-shaped | **verified** |
 | S-09 | ΔΔG_spec shall not affect ranking outside M1 | varied on M2/M3; order unchanged | **verified** |
 | S-10 | REU shall not be combinable with kcal/mol | type error and runtime `TypeError` | **verified** |
-| S-11 | The pooled SD used by G4 and the tie tolerance shall be one defined quantity | — | **pending** — specification defines it twice (`DECISIONS.md` D-5) |
+| S-11 | The pooled SD used by G4 and the tie tolerance shall be one defined quantity | `tests/unit/test_noise.py`, `tests/property/test_margin_properties.py` | **verified** — amendment A9; `NoiseFloor` is required by `exceeds_noise` and by `rank_arm`, so neither reading can be selected by omission |
 
 ## E · Evaluation and controls
 
@@ -114,11 +114,12 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 43 |
-| Pending | 6 |
+| Verified | 44 |
+| Pending | 5 |
 | **Total** | **49** |
 
 Every pending requirement is blocked on something this environment cannot
-supply: a GPU, returned experimental data, an unreachable source, or a
-specification ambiguity that must be settled by amendment (S-11). None is
-pending for want of effort.
+supply: a GPU, returned experimental data, or an unreachable source. None is
+pending for want of effort. S-11, the one specification ambiguity on the list,
+was settled by amendment A9 on 4 November 2026 rather than left for the
+campaign to resolve at the keyboard.

@@ -1,10 +1,11 @@
 """Specificity margins: the quantity this project ranks on.
 
-`PROTOCOL.md` section 3.5 states the strategic fact the whole pipeline turns on.
-The competition resolves mutation specificity and peptide-dependence before
-affinity, so a micromolar binder that discriminates beats a nanomolar binder
-that does not, yet nearly every default pipeline ranks on confidence against
-the target alone. The margins here are the alternative objective:
+`PROTOCOL.md` section 3.5 states the fact the whole pipeline turns on. A
+binder to a single-residue neoantigen is useful only if it resolves the mutant
+from the wild type, so a micromolar binder that discriminates is worth more
+than a nanomolar binder that does not, yet nearly every default pipeline ranks
+on confidence against the target alone. The margins here are the alternative
+objective:
 
     M_mut = C(T+) - C(D1)     mutation specificity, against the wild type
     M_pep = C(T+) - C(D2)     peptide dependence, against the empty groove
@@ -21,6 +22,13 @@ indistinguishable from noise and bad ones look clean. A :class:`CounterScreen`
 holds one design, so the wrong quantity is not expressible here, and a test
 pins it anyway.
 
+What G4 then *divides by* is a second question, and the specification answered
+it twice. Amendment A9 settles it: the denominator is the larger of this
+within-design pooled SD and the campaign floor of
+:class:`counterscreen.core.noise.NoiseFloor`, whose docstring carries the
+argument. The floor is a required argument of :meth:`Margin.exceeds_noise`,
+so the weaker reading cannot be selected by omission.
+
 **Margins are paired by seed, not by position.** The counter-screen runs the
 same seed against every target, so subtracting matched seeds removes the
 seed-to-seed component the gate is trying to measure against. Arms are matched
@@ -36,6 +44,8 @@ import enum
 import math
 import statistics
 from collections.abc import Mapping, Sequence
+
+from counterscreen.core.noise import NoiseFloor
 
 #: Two seeds is the minimum that admits a standard deviation at all, and is
 #: what `PROTOCOL.md` section 9 runs at the screening tier.
@@ -115,6 +125,7 @@ class Margin:
     """A specificity margin, with the noise it must be judged against."""
 
     name: str
+    metric: str
     minuend: str
     subtrahend: str
     per_seed: tuple[tuple[int, float], ...]
@@ -135,15 +146,33 @@ class Margin:
         """Standard deviation of the margin itself across seeds."""
         return statistics.stdev(self.values)
 
-    def exceeds_noise(self, sd_multiple: float) -> bool:
+    def noise_denominator(self, floor: NoiseFloor) -> float:
+        """Return the spread G4 judges this margin against.
+
+        Amendment A9: the larger of this design's own pooled seed SD and the
+        campaign floor measured from identical repeat runs. `core.noise`
+        carries the argument for taking the maximum rather than either alone.
+        """
+        if floor.metric != self.metric:
+            msg = (
+                f"margin {self.name!r} was scored on {self.metric!r} but the noise "
+                f"floor was measured on {floor.metric!r}"
+            )
+            raise MarginError(msg)
+        return floor.gate_denominator(self.pooled_sd)
+
+    def exceeds_noise(self, sd_multiple: float, floor: NoiseFloor) -> bool:
         """Whether the margin clears the G4 noise floor.
 
         One-sided on purpose. `PROTOCOL.md` section 8 registers G4 as
         ``M > 2 x pooled SD``, so a design that scores *better* against a
         decoy produces a negative margin and fails, rather than passing on
         magnitude.
+
+        The floor is required rather than defaulted, so a margin cannot be
+        judged against this design's seeds alone by leaving an argument out.
         """
-        return self.mean > sd_multiple * self.pooled_sd
+        return self.mean > sd_multiple * self.noise_denominator(floor)
 
 
 def pooled_sd(arms: Sequence[ArmScores]) -> float:
@@ -230,6 +259,7 @@ class CounterScreen:
         )
         return Margin(
             name=name,
+            metric=self.metric,
             minuend=minuend.label,
             subtrahend="|".join(arm.label for arm in subtrahend),
             per_seed=per_seed,

@@ -7,12 +7,20 @@ import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
 
+from counterscreen.core.noise import NoiseFloor
 from counterscreen.score.margins import ArmScores, CounterScreen, TargetRole, pooled_sd
 
 confidence = st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False)
 paired = st.lists(st.tuples(confidence, confidence), min_size=2, max_size=6)
 
 TOLERANCE = 1e-9
+floors = st.floats(min_value=1e-6, max_value=1.0, allow_nan=False, allow_infinity=False)
+
+
+def noise_floor(sd: float) -> NoiseFloor:
+    return NoiseFloor(
+        metric="ipsae", sd=sd, repeats=5, source="tests/property/test_margin_properties.py"
+    )
 
 
 def build(pairs: list[tuple[float, float]]) -> CounterScreen:
@@ -70,15 +78,33 @@ def test_raising_decoy_confidence_cannot_raise_the_margin(
     pairs=paired,
     bump=st.floats(min_value=0.0, max_value=5.0, allow_nan=False),
     multiple=st.floats(min_value=0.0, max_value=4.0, allow_nan=False),
+    sd=floors,
 )
 def test_the_noise_gate_is_monotone(
-    pairs: list[tuple[float, float]], bump: float, multiple: float
+    pairs: list[tuple[float, float]], bump: float, multiple: float, sd: float
 ) -> None:
-    """A design that passes cannot be made to fail by scoring better."""
+    """A design that passes cannot be made to fail by scoring better.
+
+    Raising the target arm by a constant leaves its spread, and therefore the
+    amendment A9 denominator, untouched, so the gate can only get easier.
+    """
+    floor = noise_floor(sd)
     base = build(pairs).m_mut()
-    assume(base.exceeds_noise(multiple))
+    assume(base.exceeds_noise(multiple, floor))
     raised = build([(t + bump, d) for t, d in pairs]).m_mut()
-    assert raised.exceeds_noise(multiple)
+    assert raised.exceeds_noise(multiple, floor)
+
+
+@given(pairs=paired, sd=floors)
+def test_the_a9_denominator_is_below_neither_reading(
+    pairs: list[tuple[float, float]], sd: float
+) -> None:
+    """The resolution must be weaker than neither definition it replaces."""
+    margin = build(pairs).m_mut()
+    floor = noise_floor(sd)
+    denominator = margin.noise_denominator(floor)
+    assert denominator >= margin.pooled_sd
+    assert denominator >= floor.sd
 
 
 @given(pairs=paired, shift=st.floats(min_value=-5.0, max_value=5.0, allow_nan=False))

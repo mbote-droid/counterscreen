@@ -209,10 +209,11 @@ Interval by the Wilson method; by the rule of three where zero are accepted, giv
 
 `[Append only. Each entry dated, with reason. Never edit the sections above.]`
 
-**All amendments below were made on 2 November 2026, before any campaign design
-was scored and before Stage −1 was run.** They are recorded here rather than
-folded silently into the text: the specification was committed verbatim one
-commit earlier, so every change is visible as a diff against it.
+**Amendments A1–A8 were made on 2 November 2026 and A9 on 4 November 2026, all
+before any campaign design was scored and before Stage −1 was run.** They are
+recorded here rather than folded silently into the text: the specification was
+committed verbatim one commit earlier, so every change is visible as a diff
+against it.
 
 | # | Section | Change | Reason |
 |---|---|---|---|
@@ -224,6 +225,7 @@ commit earlier, so every change is visible as a diff against it.
 | A8 | `PROTOCOL.md` §4 | **M1 redefined** | Its original wording — a donor contacting "the carboxylate oxygens of Asp6 not taken by Arg114" — names an empty set. M1 now targets the 6.4 Å² solvent-accessible face of OD1, or displacement of the weaker Gln70 contacts, and records that Arg114 is not displaceable. The arm is retained rather than deleted because 6.4 Å² is small but not zero and a binder may read the Asp6 environment without contacting the carboxylate; the change is to its definition and its expected value, not its feasibility |
 | A6 | §5 | **Noise-floor repeat count set to 5**, matching `PROTOCOL.md` §10 and `DESIGN.md` §5 | §5 left the repeat count as `[N]` while both companion files already specified five identical runs for the same measurement. Left open it would be a free parameter underneath G4 and §2, since the measured spread defines the `pooled SD` both depend on: a repeat count chosen after seeing the noise would set the floor to suit the result. Alignment with the registered value, not a new choice |
 | A5 | §2 | **Stage −1 pass/fail rule rewritten parameter-free** | §2 carried four `[N]` placeholders while §3, three paragraphs later, argued that registering a threshold as `[FILL]` means choosing it after seeing data, "which is exactly where a pre-registration most needs to bind". §2 is the rule that decides whether the neural arm proceeds at all, so it needed that discipline most. Now expressed through quantities already registered — the G4 rule — plus stated conventions |
+| A9 | §3 (G4), §4 step 1 | **`pooled SD` resolved to one quantity.** G4's denominator is `max(within-design pooled seed SD, campaign noise floor)`. The ranking tie tolerance is half the campaign noise floor alone | The specification defined `pooled SD` twice and the definitions are not equivalent: `PROTOCOL.md` §7.1 and `DESIGN.md` §4 take it per design across that design's seeds, while `PROTOCOL.md` §10 and §5 here take it as a campaign floor measured once from five identical runs. The same symbol sets G4's denominator and the tie tolerance, so the two readings give different gate verdicts and different orderings, and `DECISIONS.md` D-5 recorded the degeneracy rather than resolving it by preference. Each reading fails where the other does not. The within-design estimate rests on four degrees of freedom per arm and sits in the denominator of a ratio test, so across a few hundred designs the ones whose seeds happened to agree pass on a small denominator — the selection effect that motivates moderated variance estimators in differential-expression testing. The campaign floor is estimated once and well, but from one input, so it cannot see that a conformationally loose design is genuinely noisier than a rigid one. The maximum is weaker than neither reading, is parameter-free, and moves error toward false rejects, which cost one design, rather than false accepts, which cost a wet-lab slot. The tie tolerance takes the campaign floor alone because it compares *two different designs*: a per-design SD makes that comparison asymmetric — A inside B's tolerance while B sits outside A's — so the grouping would depend on which design was read first, and a rank that depends on input order is not a registered rank. The fraction stays 0.5 and is not configurable, for the reason G2 carries no configuration field |
 
 Changes made in the companion files at the same time, recorded here because
 they follow from the amendments above:
@@ -236,6 +238,9 @@ they follow from the amendments above:
 | `METHODS.md` §8.1, §8.5 | Estimator ladder and registered adversarial n reflected in the write-up |
 | `DESIGN.md` §8b | Gate ordering diagram now places G5 after G1, before any co-folding |
 | `README.md` | Licence resolved: MIT for code, CC-BY-4.0 for documentation |
+| `PROTOCOL.md` §7.1, §8 | G4's denominator named explicitly, per A9 |
+| `DESIGN.md` §4 | Implementation note separates *which* SD is measured from *what G4 divides by*, per A9 |
+| `benchmarks/day1_gpu_benchmark.md` | Noise-floor section now states how the recorded SD is used, replacing the unresolved-ambiguity note |
 
 Still open, and deliberately not amended here because neither can be settled
 without reading a primary source:

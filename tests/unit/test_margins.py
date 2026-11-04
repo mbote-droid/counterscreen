@@ -5,6 +5,7 @@ from collections.abc import Mapping
 
 import pytest
 
+from counterscreen.core.noise import NoiseFloor
 from counterscreen.score.margins import (
     ArmScores,
     CounterScreen,
@@ -13,6 +14,11 @@ from counterscreen.score.margins import (
     pooled_sd,
     summarise,
 )
+
+
+def noise_floor(sd: float = 0.01, metric: str = "ipsae") -> NoiseFloor:
+    """Build a floor small enough that these tests exercise the within-design SD."""
+    return NoiseFloor(metric=metric, sd=sd, repeats=5, source="tests/unit/test_margins.py")
 
 
 def screen(
@@ -46,14 +52,14 @@ def test_m_mut_is_target_minus_decoy_not_the_reverse() -> None:
 def test_a_design_that_prefers_the_decoy_yields_a_negative_margin() -> None:
     margin = screen(target={1: 0.40, 2: 0.42}, mutation={1: 0.80, 2: 0.82}).m_mut()
     assert margin.mean == pytest.approx(-0.40)
-    assert not margin.exceeds_noise(2.0)
+    assert not margin.exceeds_noise(2.0, noise_floor())
 
 
 def test_the_noise_gate_is_one_sided() -> None:
     """A large negative margin must fail, not pass on magnitude."""
     margin = screen(target={1: 0.10, 2: 0.12}, mutation={1: 0.90, 2: 0.92}).m_mut()
     assert abs(margin.mean) > 0.5
-    assert not margin.exceeds_noise(2.0)
+    assert not margin.exceeds_noise(2.0, noise_floor())
 
 
 # --- Registered mutant 2: pooled SD across designs instead of within --------
@@ -72,7 +78,7 @@ def test_pooled_sd_is_measured_within_a_design_not_across_designs() -> None:
     # DESIGN section 4: getting this backwards inverts the gate. The same
     # design passes on its own seed noise and fails on the between-design
     # spread, which is the signal being ranked.
-    assert first.m_mut().exceeds_noise(2.0)
+    assert first.m_mut().exceeds_noise(2.0, noise_floor())
     assert first.m_mut().mean < 2.0 * across
 
 

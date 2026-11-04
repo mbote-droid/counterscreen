@@ -32,9 +32,13 @@ demonstrates rather than hides.
 `PROTOCOL.md` section 7.1 and `DESIGN.md` section 4 define pooled SD per design,
 across that design's seeds; `PROTOCOL.md` section 10 and `PREREGISTRATION.md`
 section 5 describe a campaign-level noise floor measured once from five
-identical Day-1 runs. The tolerance is therefore taken as an explicit
-argument, so this module imposes no answer and the caller supplies whichever
-the campaign registers.
+identical Day-1 runs. Amendment A9 settles it on the campaign floor, because a
+per-design SD makes the comparison asymmetric -- A inside B's tolerance while B
+sits outside A's -- and a grouping that depends on which design is read first
+is not a reproducible rank. These functions therefore take a
+:class:`counterscreen.core.noise.NoiseFloor` and derive the tolerance from it;
+there is no float to pass, so a design's own SD cannot be supplied in its
+place.
 """
 
 import dataclasses
@@ -42,6 +46,7 @@ import itertools
 from collections.abc import Sequence
 
 from counterscreen.core.design import Arm
+from counterscreen.core.noise import NoiseFloor
 
 
 class RankingError(ValueError):
@@ -79,11 +84,13 @@ def _tiebreak_key(entry: RankEntry, *, use_ddg: bool) -> tuple[float, float, flo
     return (-entry.m_pep, -entry.target_confidence, ddg, entry.design_id)
 
 
-def rank_arm(entries: Sequence[RankEntry], tie_tolerance: float) -> tuple[RankEntry, ...]:
-    """Rank one mechanism arm by the registered rule."""
-    if tie_tolerance < 0:
-        msg = f"tie tolerance must not be negative, got {tie_tolerance}"
-        raise RankingError(msg)
+def rank_arm(entries: Sequence[RankEntry], floor: NoiseFloor) -> tuple[RankEntry, ...]:
+    """Rank one mechanism arm by the registered rule.
+
+    The tolerance comes from ``floor`` rather than from an argument, so no
+    number chosen after the scores were seen can widen or narrow a tie group.
+    """
+    tie_tolerance = floor.tie_tolerance()
     arms = {entry.arm for entry in entries}
     if len(arms) > 1:
         msg = f"rank_arm ranks one arm at a time, got {sorted(str(a) for a in arms)}"
@@ -107,10 +114,11 @@ def rank_arm(entries: Sequence[RankEntry], tie_tolerance: float) -> tuple[RankEn
     return tuple(ranked)
 
 
-def tie_groups(entries: Sequence[RankEntry], tie_tolerance: float) -> tuple[tuple[str, ...], ...]:
+def tie_groups(entries: Sequence[RankEntry], floor: NoiseFloor) -> tuple[tuple[str, ...], ...]:
     """Expose the tie grouping, so chaining is visible rather than implicit."""
     if not entries:
         return ()
+    tie_tolerance = floor.tie_tolerance()
     ordered = sorted(entries, key=lambda e: (-e.m_mut, e.design_id))
     groups: list[list[str]] = [[ordered[0].design_id]]
     for above, entry in itertools.pairwise(ordered):

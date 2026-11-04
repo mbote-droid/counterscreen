@@ -45,7 +45,15 @@ Reported as distributions, never point values.
 | M_mut | `[[margins.m_mut.median]]` | `[[margins.m_mut.q1]]`–`[[margins.m_mut.q3]]` | `[[margins.m_mut.passing]]` |
 | M_pep | `[[margins.m_pep.median]]` | `[[margins.m_pep.q1]]`–`[[margins.m_pep.q3]]` | `[[margins.m_pep.passing]]` |
 
-Noise floor from the Day-1 benchmark: `[[noise.pooled_sd]]`.
+Per amendment A9, G4 divided each margin by the larger of the campaign noise
+floor and that design's own pooled seed SD.
+
+| Quantity | Value |
+|---|---|
+| Campaign noise floor, from the Day-1 repeats | `[[noise.campaign_sd]]` |
+| Repeats it was measured from | `[[noise.repeats]]` |
+| Designs whose own seed SD exceeded the floor | `[[noise.above_floor]]` |
+| Ranking tie tolerance, `0.5 ×` the floor | `[[noise.tie_tolerance]]` |
 
 ## Mechanism allocation
 

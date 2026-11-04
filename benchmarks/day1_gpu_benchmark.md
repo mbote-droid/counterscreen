@@ -106,20 +106,30 @@ counter-screen.**
 ## Noise floor
 
 Run the **same input five times** and record the spread of every confidence
-metric. That spread is both the `pooled SD` used in gate G4 and the tolerance
-band for CI assertions on GPU stages (`PREREGISTRATION.md` §5, amendment A6).
+metric. That spread is the **campaign noise floor**: it sets G4's denominator
+together with each design's own seed SD, sets the ranking tie tolerance on its
+own, and is the tolerance band for CI assertions on GPU stages
+(`PREREGISTRATION.md` §5, amendments A6 and A9).
 
 | Metric | Mean | SD | n |
 |---|---|---|---|
 | `TO RECORD` | | | 5 |
 
-> **Unresolved before this can be used.** The specification defines `pooled SD`
-> twice and the definitions are not equivalent: per design across that design's
-> seeds (`PROTOCOL.md` §7.1, `DESIGN.md` §4), or campaign-level from these five
-> runs (`PROTOCOL.md` §10, `PREREGISTRATION.md` §5). The same symbol sets G4's
-> denominator *and* the ranking tie tolerance, so the two readings give
-> different gate verdicts and different rankings. It must be settled by
-> amendment before any design is scored. See `DECISIONS.md` D-5.
+**Five is a floor, not a target.** More repeats are accepted and give a better
+estimate; fewer are refused.
+
+How the recorded number is used, per amendment A9:
+
+| Use | Quantity |
+|---|---|
+| G4 denominator | `max(this SD, the design's own pooled seed SD)` |
+| Ranking tie tolerance | `0.5 × this SD`, alone |
+
+Record it as a `counterscreen.core.noise.NoiseFloor`, which requires the metric
+name, the SD, the repeat count and a source pointing back at this sheet. There
+are no defaults: a gate cannot run against a floor nobody measured, and an SD
+of zero is refused as a failed measurement rather than taken as a perfectly
+reproducible model. `DECISIONS.md` D-5 carries the argument for the maximum.
 
 ## Training-data contamination
 
