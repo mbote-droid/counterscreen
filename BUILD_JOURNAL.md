@@ -180,3 +180,58 @@ wrap. See FINDINGS F-9.
 **Regression test.** `test_deposited_structures_pass_the_geometry_gate`
 asserts every prepared target passes, plus one test each for the wrap, the
 former dead zone, and that a disallowed conformation is still rejected.
+
+### ISSUE-017 · G9's cost was declared as local structural work · 4 Nov
+
+**Symptom.** Writing a general cheap-first invariant over the gate ordering
+for amendment A10, rather than the pair of assertions that existed before, the
+new test failed on the pipeline as it stood.
+**Diagnosis.** Two separate causes behind one failure. `GATE_COST` declared G9
+as `STRUCTURE`, the tier meaning local structural arithmetic costing seconds,
+when G9 is a Foldseek search against the whole PDB: a multi-gigabyte download
+and minutes per query, which is what `EXTERNAL` is for. Classified that way it
+would have been legal to move G9 in among G0, G5 and G6 and pay for the
+database before any co-folding. Separately, the invariant as first written was
+wrong: it treated G6 as mis-ordered, when G6 is cheap but asks its question in
+the T+ complex and so cannot run before co-folding at any price.
+**Fix.** G9 reclassified as `EXTERNAL`. `GateInput` added so each gate also
+declares what it has to be given, and `effective_tier` takes the more
+expensive of a gate's cost and its input; the cost enum now says it classifies
+by expense rather than by the kind of input read.
+**Regression test.** `test_the_order_is_cheap_first_with_no_exceptions_left`
+asserts the order is non-decreasing in `effective_tier` over every pair,
+`test_every_gate_declares_both_a_cost_and_an_input` refuses an undeclared
+gate, and `test_a_cheap_gate_that_needs_the_complex_cannot_run_early` pins why
+G6 sits where it does.
+
+### ISSUE-018 · Two funnel tables, two orders, neither the pipeline's · 4 Nov
+
+**Symptom.** Found while moving G8 for A10. `METHODS.md` §8.7 listed the
+funnel as G0, G1, G2-G4, G5, G6, G7/G9, G8; the campaign report listed G0, G1,
+G5, G2-G4, G6, G7/G9, G8. The second matched the pipeline before A10; the
+first matched no ordering the code ever ran.
+**Diagnosis.** `DESIGN.md` §9b forbids typing numbers into prose and the claim
+checker enforces it, so each count resolves from a result file and cannot go
+stale. The *order of the rows* was still typed by hand, and a per-stage count
+means nothing except relative to the stages before it, so a correct number in
+the wrong row describes a pipeline nobody ran.
+**Fix.** Both tables reordered to `PIPELINE_ORDER`.
+**Regression test.** `tests/contract/test_funnel_documents.py` parses the
+`[[funnel.*]]` keys out of both documents in written order and asserts they
+match the pipeline order, cover every gate once, and agree with each other.
+
+### ISSUE-019 · `REQUIREMENTS.md` miscounted itself, and reused an ID · 4 Nov
+
+**Symptom.** The coverage table claimed 43 verified of 49 while the document
+carried 57 rows, 53 of them verified. A new row was then added as G-08, which
+already existed.
+**Diagnosis.** The same class as ISSUE-018 one level up: the counts and the
+identifiers were typed by hand into a document nothing read. The claim checker
+guards generated documents, not this one.
+**Fix.** Counts corrected to 54 verified, 4 pending, 58 total. The new row
+renumbered G-11.
+**Regression test.** `tests/contract/test_requirements_document.py` recounts
+the rows and compares them with the coverage table, asserts each row is
+verified or pending and not both, asserts every verified row names a
+verification method, and asserts identifiers are unique. The duplicate ID was
+caught by that last assertion on its first run.

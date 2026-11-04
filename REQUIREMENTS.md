@@ -26,10 +26,11 @@ A requirement with no verification method is not a requirement; it is a wish.
 | G-04 | G0 shall **not** reject experimentally determined coordinates | every prepared target passes | **verified** (see F-9) |
 | G-05 | G0 shall reject non-L chirality | mirrored structure; improper dihedrals negate | **verified** |
 | G-06 | G0 shall reject cis-peptides except before proline | ω = 0 chains with and without proline | **verified** |
-| G-07 | Gates shall run cheapest-first, geometry before any fold | ordering asserted against declared gate costs | **verified** |
+| G-07 | Gates shall run cheapest-first, geometry before any fold | ordering asserted to be non-decreasing in `effective_tier` over every pair of gates | **verified** — amendment A10; the last departure, G8 after co-folding, was removed |
 | G-08 | A gate without an evaluator shall refuse to run, never skip | parametrised over all ten gates | **verified** |
 | G-09 | A design shall not be folded unless G0 passed it | adapter never reached for unstamped design | **verified** |
 | G-10 | G2's operating point shall not be settable from configuration | unknown-key error on `g2_confidence` | **verified** |
+| G-11 | Every funnel table in prose shall list the gates in the order they run | `tests/contract/test_funnel_documents.py` | **verified** — both tables were out of order before A10 (`BUILD_JOURNAL.md` ISSUE-018) |
 
 ## T · Targets
 
@@ -114,9 +115,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 44 |
-| Pending | 5 |
-| **Total** | **49** |
+| Verified | 54 |
+| Pending | 4 |
+| **Total** | **58** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

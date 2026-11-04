@@ -24,6 +24,7 @@ the objective; affinity is a constraint.
 | Stage | Designs remaining |
 |---|---|
 | Generated | `[[funnel.generated]]` |
+| Passed G8, submission constraints | `[[funnel.g8]]` |
 | Passed G0, geometric validity | `[[funnel.g0]]` |
 | Passed G1, self-consistency | `[[funnel.g1]]` |
 | Passed G5, hydrophobic patch | `[[funnel.g5]]` |
@@ -32,7 +33,6 @@ the objective; affinity is a constraint.
 | Passed G4, margin above noise | `[[funnel.g4]]` |
 | Passed G6, no buried unsatisfied charges | `[[funnel.g6]]` |
 | Passed G7 and G9, sequence and structural novelty | `[[funnel.g79]]` |
-| Passed G8, submission constraints | `[[funnel.g8]]` |
 | After diversity clustering | `[[funnel.clustered]]` |
 | Submitted | `[[funnel.submitted]]` |
 

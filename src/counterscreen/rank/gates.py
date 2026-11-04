@@ -38,7 +38,13 @@ class GateError(ValueError):
 
 
 class GateCost(enum.StrEnum):
-    """What a gate costs to evaluate, which is what fixes its position."""
+    """What a gate costs to evaluate, which is what fixes its position.
+
+    Classified by expense, not by the kind of input a gate reads.
+    ``STRUCTURE`` is local structural arithmetic costing seconds; a search
+    against an external database is ``EXTERNAL`` however structural its
+    question, because it costs a download and minutes.
+    """
 
     SEQUENCE = "sequence"
     STRUCTURE = "structure"
@@ -58,22 +64,83 @@ GATE_COST: Mapping[Gate, GateCost] = {
     Gate.G6: GateCost.STRUCTURE,
     Gate.G7: GateCost.EXTERNAL,
     Gate.G8: GateCost.SEQUENCE,
-    Gate.G9: GateCost.STRUCTURE,
+    # Foldseek against the whole PDB: a multi-gigabyte download and minutes
+    # per query, so it is external like G7 and not local structural work.
+    Gate.G9: GateCost.EXTERNAL,
 }
 
-#: Order of evaluation, following the `DESIGN.md` section 8b cascade:
-#: geometry, self-consistency, hydrophobic patch, then co-folding, then the
-#: remainder.
+
+class GateInput(enum.StrEnum):
+    """What a gate has to be given before it can be evaluated at all.
+
+    Cost alone does not fix the order. G6 asks a local structural question --
+    buried unsatisfied charges -- but `PROTOCOL.md` section 8 asks it *in the
+    T+ complex*, so it cannot run before co-folding however cheap it is. The
+    position a gate may take is therefore set by the more expensive of what it
+    costs and what it depends on.
+    """
+
+    SEQUENCE = "sequence"
+    BACKBONE = "backbone"
+    REFOLDED_MONOMER = "refolded_monomer"
+    COMPLEX = "complex"
+
+
+#: What each gate reads.
+GATE_INPUT: Mapping[Gate, GateInput] = {
+    Gate.G0: GateInput.BACKBONE,
+    Gate.G1: GateInput.REFOLDED_MONOMER,
+    Gate.G2: GateInput.COMPLEX,
+    Gate.G3: GateInput.COMPLEX,
+    Gate.G4: GateInput.COMPLEX,
+    Gate.G5: GateInput.REFOLDED_MONOMER,
+    Gate.G6: GateInput.COMPLEX,
+    Gate.G7: GateInput.SEQUENCE,
+    Gate.G8: GateInput.SEQUENCE,
+    Gate.G9: GateInput.BACKBONE,
+}
+
+#: Tiers the ordering is non-decreasing in. Equal numbers mean the order
+#: between two gates is free; the pipeline fixes one for reproducibility.
+_COST_TIER: Mapping[GateCost, int] = {
+    GateCost.SEQUENCE: 0,
+    GateCost.STRUCTURE: 1,
+    GateCost.CHEAP_FOLD: 1,
+    GateCost.COFOLD: 2,
+    GateCost.EXTERNAL: 3,
+}
+_INPUT_TIER: Mapping[GateInput, int] = {
+    GateInput.SEQUENCE: 0,
+    GateInput.BACKBONE: 1,
+    GateInput.REFOLDED_MONOMER: 1,
+    GateInput.COMPLEX: 2,
+}
+
+
+def effective_tier(gate: Gate) -> int:
+    """How early a gate may run: the more expensive of its cost and its input."""
+    return max(_COST_TIER[GATE_COST[gate]], _INPUT_TIER[GATE_INPUT[gate]])
+
+
+#: Order of evaluation: submission constraints, then geometry,
+#: self-consistency and the hydrophobic patch, then co-folding, then the
+#: remainder. This is the `DESIGN.md` section 8b cascade with G8 moved to the
+#: front by amendment A10.
 #:
-#: One departure from cheap-first is inherited from that diagram and is worth
-#: naming rather than quietly fixing. G8 is a sequence-only check -- length,
+#: Section 8b placed G8 after co-folding, which was the one departure from the
+#: cheap-first rule the same section states. G8 is sequence-only -- length,
 #: chain count, standard residues, free cysteines -- costing microseconds and
-#: needing no structure at all, yet section 8b places it after co-folding. Any
-#: design failing G8 was never submittable, so every GPU-second spent on it
-#: before that point is wasted. Moving it to the front is a change to a
-#: specified ordering, so it is raised as a proposed amendment rather than
-#: made here.
+#: needing no structure at all, while every design it rejects had already paid
+#: for three targets at two seeds: 360 to 720 GPU-seconds at the 60-120 s per
+#: prediction `PROTOCOL.md` section 10 calls realistic. Reordering cannot
+#: change which designs survive, because the cascade is a conjunction of
+#: predicates and each depends only on the design and on panel-derived
+#: thresholds, so the only things that move are the per-stage rejection tallies
+#: and the cost. Funnel counts are therefore comparable only within one
+#: ordering, which is why the funnel tables are generated from this tuple
+#: rather than written by hand.
 PIPELINE_ORDER: tuple[Gate, ...] = (
+    Gate.G8,
     Gate.G0,
     Gate.G1,
     Gate.G5,
@@ -82,7 +149,6 @@ PIPELINE_ORDER: tuple[Gate, ...] = (
     Gate.G4,
     Gate.G6,
     Gate.G7,
-    Gate.G8,
     Gate.G9,
 )
 

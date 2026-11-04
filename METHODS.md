@@ -205,15 +205,15 @@ Agreement indicates the scoring function behaves physically on this interaction 
 | Stage | Designs remaining |
 |---|---|
 | Generated | `[[funnel.generated]]` |
+| Passed G8, submission constraints | `[[funnel.g8]]` |
 | Passed G0, geometric validity | `[[funnel.g0]]` |
 | Passed G1, self-consistency | `[[funnel.g1]]` |
+| Passed G5, hydrophobic patch | `[[funnel.g5]]` |
 | Passed G2, confidence | `[[funnel.g2]]` |
 | Passed G3, peptide contact | `[[funnel.g3]]` |
 | Passed G4, margin above noise | `[[funnel.g4]]` |
-| Passed G5, hydrophobic patch | `[[funnel.g5]]` |
 | Passed G6, no buried unsatisfied charges | `[[funnel.g6]]` |
 | Passed G7 and G9, sequence and structural novelty | `[[funnel.g79]]` |
-| Passed G8, submission constraints | `[[funnel.g8]]` |
 | After diversity clustering | `[[funnel.clustered]]` |
 | Submitted | 20 |
 

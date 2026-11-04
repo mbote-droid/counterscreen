@@ -1,16 +1,21 @@
 """Gate contract (PROTOCOL.md section 12.4b): a gate must never be silently skipped."""
 
+import itertools
+
 import pytest
 
 from counterscreen.core.design import Arm, Design, Gate
 from counterscreen.rank.gates import (
     GATE_COST,
+    GATE_INPUT,
     PIPELINE_ORDER,
     Funnel,
     GateCost,
     GateError,
     GateEvaluator,
+    GateInput,
     GateResult,
+    effective_tier,
     run_gates,
 )
 
@@ -78,17 +83,49 @@ def test_the_order_covers_every_gate_exactly_once() -> None:
     assert len(set(PIPELINE_ORDER)) == len(PIPELINE_ORDER)
 
 
-def test_g8_is_sequence_only_and_currently_sits_after_co_folding() -> None:
-    """Documents the ordering departure named in the module docstring.
+def test_the_sequence_only_gate_runs_before_anything_that_costs() -> None:
+    """Amendment A10: G8 needs no structure, so nothing may precede it.
 
-    Not an assertion that this is right. G8 needs no structure at all, so
-    every design it rejects consumed co-folding time it never needed. Changing
-    a specified order is an amendment, so the test records the state of play
-    rather than enforcing a fix.
+    It rejects designs that were never submittable, and before A10 each one
+    had already paid for three targets at two seeds.
     """
     assert GATE_COST[Gate.G8] is GateCost.SEQUENCE
-    last_cofold = max(i for i, g in enumerate(PIPELINE_ORDER) if GATE_COST[g] is GateCost.COFOLD)
-    assert PIPELINE_ORDER.index(Gate.G8) > last_cofold
+    assert PIPELINE_ORDER[0] is Gate.G8
+
+
+def test_the_order_is_cheap_first_with_no_exceptions_left() -> None:
+    """No gate runs before one that is cheaper to reach.
+
+    Stated as a rule over the declared cost and input of every gate rather
+    than as a list of pairs, so a gate added later cannot be slipped in out of
+    order. Amendment A10 removed the last exception.
+    """
+    tiers = [effective_tier(gate) for gate in PIPELINE_ORDER]
+    for earlier, later in itertools.combinations(range(len(tiers)), 2):
+        assert tiers[earlier] <= tiers[later], (
+            f"{PIPELINE_ORDER[earlier]} (tier {tiers[earlier]}) runs before "
+            f"{PIPELINE_ORDER[later]} (tier {tiers[later]})"
+        )
+
+
+def test_every_gate_declares_both_a_cost_and_an_input() -> None:
+    """A gate with no declaration could be placed anywhere unchallenged."""
+    assert set(GATE_COST) == set(Gate)
+    assert set(GATE_INPUT) == set(Gate)
+
+
+def test_a_cheap_gate_that_needs_the_complex_cannot_run_early() -> None:
+    """Why G6 sits after co-folding: it is cheap but its input is not.
+
+    `PROTOCOL.md` section 8 asks G6 for buried unsatisfied charges *in the T+
+    complex*, so cost alone would have put it among the seconds-long
+    structural gates and it would have had nothing to read.
+    """
+    assert GATE_COST[Gate.G6] is GateCost.STRUCTURE
+    assert GATE_INPUT[Gate.G6] is GateInput.COMPLEX
+    assert effective_tier(Gate.G6) == effective_tier(Gate.G2)
+    first_cofold = min(i for i, g in enumerate(PIPELINE_ORDER) if GATE_COST[g] is GateCost.COFOLD)
+    assert PIPELINE_ORDER.index(Gate.G6) > first_cofold
 
 
 # --- Short-circuiting and diagnostics ---------------------------------------
@@ -100,7 +137,7 @@ def test_evaluation_stops_at_the_first_failure() -> None:
     result = run_gates(design(), evaluators)
     assert result.failed_at is Gate.G1
     assert result.reason == "scRMSD 3.1 A"
-    assert [gate for gate, _, _ in result.outcomes] == [Gate.G0, Gate.G1]
+    assert [gate for gate, _, _ in result.outcomes] == [Gate.G8, Gate.G0, Gate.G1]
     assert not result.passed
 
 
@@ -161,7 +198,9 @@ def test_remaining_after_each_gate_is_non_increasing() -> None:
     funnel = Funnel.from_results(results, clustered=2, submitted=2)
     counts = [funnel.remaining_after(gate) for gate in PIPELINE_ORDER]
     assert counts == sorted(counts, reverse=True)
-    assert counts[0] == 6
+    # G8 runs first and rejected nothing here, so the first count is the input.
+    assert counts[0] == 10
+    assert funnel.remaining_after(Gate.G0) == 6
     assert counts[-1] == funnel.survived_gates
 
 

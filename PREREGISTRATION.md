@@ -209,8 +209,8 @@ Interval by the Wilson method; by the rule of three where zero are accepted, giv
 
 `[Append only. Each entry dated, with reason. Never edit the sections above.]`
 
-**Amendments A1–A8 were made on 2 November 2026 and A9 on 4 November 2026, all
-before any campaign design was scored and before Stage −1 was run.** They are
+**Amendments A1–A8 were made on 2 November 2026 and A9–A10 on 4 November 2026,
+all before any campaign design was scored and before Stage −1 was run.** They are
 recorded here rather than folded silently into the text: the specification was
 committed verbatim one commit earlier, so every change is visible as a diff
 against it.
@@ -226,6 +226,7 @@ against it.
 | A6 | §5 | **Noise-floor repeat count set to 5**, matching `PROTOCOL.md` §10 and `DESIGN.md` §5 | §5 left the repeat count as `[N]` while both companion files already specified five identical runs for the same measurement. Left open it would be a free parameter underneath G4 and §2, since the measured spread defines the `pooled SD` both depend on: a repeat count chosen after seeing the noise would set the floor to suit the result. Alignment with the registered value, not a new choice |
 | A5 | §2 | **Stage −1 pass/fail rule rewritten parameter-free** | §2 carried four `[N]` placeholders while §3, three paragraphs later, argued that registering a threshold as `[FILL]` means choosing it after seeing data, "which is exactly where a pre-registration most needs to bind". §2 is the rule that decides whether the neural arm proceeds at all, so it needed that discipline most. Now expressed through quantities already registered — the G4 rule — plus stated conventions |
 | A9 | §3 (G4), §4 step 1 | **`pooled SD` resolved to one quantity.** G4's denominator is `max(within-design pooled seed SD, campaign noise floor)`. The ranking tie tolerance is half the campaign noise floor alone | The specification defined `pooled SD` twice and the definitions are not equivalent: `PROTOCOL.md` §7.1 and `DESIGN.md` §4 take it per design across that design's seeds, while `PROTOCOL.md` §10 and §5 here take it as a campaign floor measured once from five identical runs. The same symbol sets G4's denominator and the tie tolerance, so the two readings give different gate verdicts and different orderings, and `DECISIONS.md` D-5 recorded the degeneracy rather than resolving it by preference. Each reading fails where the other does not. The within-design estimate rests on four degrees of freedom per arm and sits in the denominator of a ratio test, so across a few hundred designs the ones whose seeds happened to agree pass on a small denominator — the selection effect that motivates moderated variance estimators in differential-expression testing. The campaign floor is estimated once and well, but from one input, so it cannot see that a conformationally loose design is genuinely noisier than a rigid one. The maximum is weaker than neither reading, is parameter-free, and moves error toward false rejects, which cost one design, rather than false accepts, which cost a wet-lab slot. The tie tolerance takes the campaign floor alone because it compares *two different designs*: a per-design SD makes that comparison asymmetric — A inside B's tolerance while B sits outside A's — so the grouping would depend on which design was read first, and a rank that depends on input order is not a registered rank. The fraction stays 0.5 and is not configurable, for the reason G2 carries no configuration field |
+| A10 | `DESIGN.md` §8b | **G8 moved to the front of the gate cascade** | §8b states cheap-first as an engineering constraint and then breaks it once: it places G8 after co-folding. G8 is sequence-only — length, chain count, standard residues, free cysteines — costs microseconds and needs no structure, while a design reaching it had already been co-folded against three targets at two seeds, which is 360–720 GPU-seconds at the 60–120 s per prediction `PROTOCOL.md` §10 calls realistic. Reordering cannot change which designs survive: the cascade is a conjunction of predicates, each depending only on the design and on thresholds derived from the control panel rather than from the design set. What it does change is every per-stage funnel count, so counts are comparable only within one ordering, and the funnel tables in `METHODS.md` §8.7 and the campaign report are now asserted against the pipeline order rather than typed by hand. G6 stays after co-folding: it is cheap, but `PROTOCOL.md` §8 asks it for buried unsatisfied charges *in the T+ complex*, so its position is set by its input. That distinction is now declared per gate and the ordering is tested to be non-decreasing in it |
 
 Changes made in the companion files at the same time, recorded here because
 they follow from the amendments above:
@@ -241,6 +242,8 @@ they follow from the amendments above:
 | `PROTOCOL.md` §7.1, §8 | G4's denominator named explicitly, per A9 |
 | `DESIGN.md` §4 | Implementation note separates *which* SD is measured from *what G4 divides by*, per A9 |
 | `benchmarks/day1_gpu_benchmark.md` | Noise-floor section now states how the recorded SD is used, replacing the unresolved-ambiguity note |
+| `DESIGN.md` §8b | Cascade diagram leads with G8 and names why G6 follows co-folding, per A10 |
+| `METHODS.md` §8.7 | Funnel table reordered to the pipeline order; it had also listed G5 after G4, which no ordering ever used |
 
 Still open, and deliberately not amended here because neither can be settled
 without reading a primary source:
