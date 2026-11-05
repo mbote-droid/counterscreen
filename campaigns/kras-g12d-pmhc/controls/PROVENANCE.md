@@ -54,8 +54,14 @@ go/no-go is not meaningful below that.
 | | Count |
 |---|---|
 | Positive controls listed | 10 |
-| At single-residue difficulty | **1** |
-| With a foldable sequence | **0** |
+| At single-residue difficulty | **1** in the Liu panel, **2** including the 7OW6 TCR |
+| With a foldable sequence | **1** — the 7OW6 TCR (`FINDINGS.md` F-23) |
+| **Usable: single-residue *and* foldable** | **1 of 5** |
+
+> These counts are no longer typed here. `controls.yaml` beside this file is
+> the panel, `counterscreen.evaluate.panel.load_catalogue` reads it, and
+> `tests/contract/test_control_catalogue.py` asserts the floor state, so
+> adding a control changes the number rather than the prose.
 
 **The published panel does not reach the floor at the difficulty that
 matters.** Supplementary single-residue controls from `SETUP.md` §4.2 are
@@ -90,6 +96,13 @@ by **one residue**, with a recorded outcome for each.
 > from IMGT germlines is error-prone, and the panel needs sequences that can be
 > folded. Structures of TCRs bound to pMHC-I give complete chains *and*
 > documented specificity in one download.
+
+**Four still needed.** Add each to the `supplementary:` section of
+`controls.yaml`, which keeps them distinguishable from the published panel in
+every report. Each needs a full foldable sequence — `binder_sequence` for one
+chain, `binder_chains` for a receptor's pair — taken from the deposition's
+`entity_poly` record and **not** from the modelled coordinates, which omit
+unmodelled residues and splice the rest together (`FINDINGS.md` F-23).
 
 | Control | Source | Accession | Allele | On-target | Off-target | Δ | Outcome |
 |---|---|---|---|---|---|---|---|

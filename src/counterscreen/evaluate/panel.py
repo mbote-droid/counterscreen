@@ -27,7 +27,11 @@ than taken from a description of them.
 import dataclasses
 import enum
 import random
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any
+
+import yaml
 
 from counterscreen.core.design import Gate
 
@@ -89,6 +93,10 @@ class Control:
     source: str = ""
     seed_provenance: SeedProvenance = SeedProvenance.DESIGNED
     binder_sequence: str | None = None
+    #: Chains of a multi-chain binder, e.g. a TCR's alpha and beta. Separate
+    #: from ``binder_sequence`` because a scrambled or reversed negative is
+    #: derived from a single chain and is not meaningful across two.
+    binder_chains: tuple[str, ...] = ()
     expected_gate: Gate | None = None
 
     def __post_init__(self) -> None:
@@ -125,8 +133,15 @@ class Control:
 
     @property
     def is_foldable(self) -> bool:
-        """Whether a binder sequence is available to fold."""
-        return bool(self.binder_sequence)
+        """Whether a sequence is available to fold, of one chain or several."""
+        return bool(self.binder_sequence) or bool(self.binder_chains)
+
+    @property
+    def chains(self) -> tuple[str, ...]:
+        """Every chain to fold, whether the control carries one or several."""
+        if self.binder_chains:
+            return self.binder_chains
+        return (self.binder_sequence,) if self.binder_sequence else ()
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -206,6 +221,70 @@ def assess_floor(controls: Sequence[Control]) -> FloorReport:
     )
 
 
+#: Sections a control catalogue may carry. ``supplementary`` is separate from
+#: ``positives`` so the published panel and what was added to reach the floor
+#: stay distinguishable in every report; both are positive controls.
+POSITIVE_SECTIONS = ("positives", "supplementary")
+
+
+def _control_from(entry: Mapping[str, Any], section: str) -> Control:
+    """Build one control from a catalogue entry, refusing a malformed one."""
+    missing = sorted({"name", "allele", "target", "on_target_peptide"} - set(entry))
+    if missing:
+        msg = f"control in {section!r} is missing {missing}: {dict(entry)}"
+        raise PanelError(msg)
+
+    role = ControlRole(entry.get("role", "positive" if section in POSITIVE_SECTIONS else section))
+    off_targets = tuple(
+        (str(item["peptide"]), str(item.get("name", "")))
+        for item in entry.get("off_target_peptides", ())
+    )
+    gate = entry.get("expected_gate")
+    return Control(
+        name=str(entry["name"]),
+        role=role,
+        allele=str(entry["allele"]),
+        target=str(entry["target"]),
+        on_target_peptide=str(entry["on_target_peptide"]),
+        off_target_peptides=off_targets,
+        source=str(entry.get("source", "")),
+        seed_provenance=SeedProvenance(entry.get("seed_provenance", "designed")),
+        binder_sequence=entry.get("binder_sequence"),
+        binder_chains=tuple(str(chain) for chain in entry.get("binder_chains", ())),
+        expected_gate=Gate(gate) if gate else None,
+    )
+
+
+def load_catalogue(path: Path) -> tuple[Control, ...]:
+    """Read a control catalogue into controls, validated as a panel.
+
+    The panel is data rather than code so that obtaining a control is an edit
+    to one file and the go/no-go recomputes from it. `PROTOCOL.md` section 5.0
+    makes assembling the panel a blocking Day-1 task, and until this existed
+    the real panel lived only in a test fixture, where nothing the campaign
+    runs could read it.
+
+    Every control is validated on the way in: :func:`validate_panel` refuses a
+    crystal-seeded control and a repeated name, and :class:`Control` itself
+    refuses a negative with no registered failure gate.
+    """
+    document = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(document, dict):
+        msg = f"{path} does not contain a control catalogue"
+        raise PanelError(msg)
+
+    controls: list[Control] = []
+    for section in (*POSITIVE_SECTIONS, "negatives"):
+        entries = document.get(section) or []
+        if not isinstance(entries, list):
+            msg = f"{path}: section {section!r} must be a list, got {type(entries).__name__}"
+            raise PanelError(msg)
+        controls.extend(_control_from(entry, section) for entry in entries)
+
+    validate_panel(controls)
+    return tuple(controls)
+
+
 def scramble(sequence: str, seed: int) -> str:
     """Shuffle a sequence deterministically, preserving composition.
 
@@ -235,6 +314,14 @@ def negative_from(
     reversed positives, and `PREREGISTRATION.md` section 4b requires each to
     carry the gate it is registered to fail at.
     """
+    if positive.binder_chains:
+        msg = (
+            f"cannot derive a negative from {positive.name!r}: it has "
+            f"{len(positive.binder_chains)} chains. Scrambling or reversing one chain of "
+            "a pair leaves a control whose registered failure gate is not the one it "
+            "would fail at"
+        )
+        raise PanelError(msg)
     if positive.binder_sequence is None:
         msg = f"cannot derive a negative from {positive.name!r}: no binder sequence"
         raise PanelError(msg)

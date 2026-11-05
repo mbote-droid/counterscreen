@@ -388,3 +388,24 @@ the 30 h/week quota at wall-clock rate regardless of use -- 1 h 19 m of the
 **No regression test.** This is an operator-facing notebook cell, outside the
 test suite. The guard is that the replacement cannot run silently: every path
 prints within seconds or exits on a timeout.
+
+### ISSUE-028 · chain_sequence spliced a chain across its unmodelled gaps · 5 Nov
+
+**Symptom.** Extracting the 7OW6 TCR's alpha chain for the control panel
+returned a continuous 181-mer. The deposition says the construct is 203
+residues.
+**Diagnosis.** `chain_sequence` collects modelled residues, sorts by residue
+number and concatenates. Chain D has three internal gaps -- 152 to 157, 167 to
+175, 185 to 189 -- so the result joins residues that are not adjacent and
+reads as a protein that does not exist. The same root cause as F-12, in a
+different function: F-12 taught the geometry gate about numbering gaps and
+nobody checked the sequence extractor. Existing uses were unaffected, because
+the prepared targets have no gaps, which is also why it had never shown.
+**Fix.** `chain_sequence` refuses a gapped chain unless the caller passes
+`allow_gaps`, and `construct_sequences` reads
+`entity_poly.pdbx_seq_one_letter_code_can` -- what was crystallised, including
+what the model does not resolve -- which is the sequence to fold from.
+**Regression test.** `test_a_chain_with_unmodelled_residues_refuses_to_give_a_sequence`
+pins both the refusal and the 203/246 construct lengths, and
+`test_an_ungapped_chain_still_gives_its_sequence` pins that the peptide chains
+the campaign uses are unaffected.

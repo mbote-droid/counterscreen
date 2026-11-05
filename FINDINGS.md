@@ -58,6 +58,7 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-20** | Direct property of low-temperature sampling | That G1's stringency varies per backbone with sampling diversity, so the effective attempt count must be reported | Nothing about the pass rate, which needs a run. The convergence is a property of T = 0.1 sampling in general, not a measurement on this target |
 | **F-21** | Negative control on all ten structures the project holds | That the bond-geometry rule rejected a deposited structure on one residue 0.41° past tolerance, and that `PREREGISTRATION.md` §3 never listed the criterion | Nothing about the per-residue tolerances, which did not move. Ten structures from two deposition groups is not a validation set, and the τ-angle spread is cited from the ideal-geometry literature rather than measured here |
 | **F-22** | Implementation plus a differential test against the library, n = 878 atoms | That G5 had no implementation of its registered quantity, that atom-centre adjacency percolates, and that the dot pass agrees with `biotite` to 0.04% | Nothing about any design's patch area, since none exists. The 295.4 Å² figure is one construct. The contiguity convention is registered, not validated against an external patch tool |
+| **F-23** | Direct extraction from a deposited structure the repository holds | That the panel has two single-residue controls, that one is foldable from `structures/7OW6.cif`, and that the naive sequence extraction splices across three unmodelled gaps | Nothing about whether the 7OW6 TCR discriminates — F-6 established it binds both complexes, so it is a control for engagement and weak evidence for discrimination. It does not reduce the need for the remaining four |
 
 **Ranked by what a reader should care about: F-6, then F-1, then F-8 and F-18,
 then the rest.** F-6 proposes a mechanism with a testable consequence — that a binder
@@ -97,7 +98,7 @@ rather than by severity.
 |---|---|---|
 | 0 | **A gate with no implementation of what it gates on.** G5 was created by amendment A1 so a registered negative control would have somewhere to fail, and reported the total apolar area rather than the largest contiguous patch — a different quantity, and one that cannot distinguish one large patch from thirty small ones | **Fixed.** F-22. The patch pass is implemented over surface dots, the gated quantity is invariant to its one free convention, and the differential test against the library came with it |
 | 1 | **Stage −1 has no input.** No model in the stack emits ipSAE or a PAE matrix with chain assignments, so §7.1 has nothing to score. The specificity margin is undefined and the neural arm does not start | **Open.** Decided by the Day-1 benchmark, which has not run. `benchmarks/day1_gpu_benchmark.md` calls it "the check that decides the project" |
-| 2 | **The control panel has no controls.** Stage −1 calibrates G2 and G3 against positive controls, and the published panel supplies **zero** runnable single-residue discriminations: the one that qualifies has no sequence. Nothing calibrates, so no operating point is derived and G2/G3 cannot be set | **Open and measured.** F-3 as sharpened by F-16. Needs the Liu sequences or the `SETUP.md` §4.2 substitutes |
+| 2 | **The control panel has too few controls.** Stage −1 calibrates G2 and G3 against positive controls, and the published panel supplies ****one** runnable single-residue discrimination against a floor of five. Nothing calibrates on one control, so no operating point is derived and G2/G3 cannot be set | **Open, measured, and one closer.** F-3 as sharpened by F-16 and F-23. The panel is now a file whose shortfall is computed; four still needed, from STCRDab or TCR3d |
 | 3 | **M1 is aimed at something that is not there.** 6.4 Å² of one carboxylate oxygen on an 85%-buried residue, whose other partner is modelled in two half-occupied conformations 6 Å apart, and which the only worked discriminator avoids entirely | **Acted on.** A7 cut M1 from nine designs to four; A8 redefined it; F-5, F-6, F-13 are the evidence. The arm is retained deliberately, at its reduced expected value |
 | 4 | **The margin is partly an artefact.** `M_pep` compares complexes of different composition, and interface confidence is a normalised quantity, so some of the margin is the metric rewarding a smaller interface — in the same direction as the signal | **Open, instrument identified.** F-19. The registered invariant-surface control measures the bias; it must be read as a calibration when Stage −1 runs |
 | 5 | **A returned K_D that the data cannot determine.** A standard five-point series fits a weak binder to a K_D 154× above the top concentration with respectable error bars, and the ratio built from it would carry an interval | **Fixed.** F-17. Identifiability is checked, an unidentified fit is not called fitted, and the ratio refuses to propagate one |
@@ -1146,3 +1147,62 @@ the sentence that makes it safe ("reporting a total as though it were a patch
 would overstate what is measured") is also what stops anyone looking again. It
 is F-10 one more time: the comment that handled the problem correctly is what
 made it invisible.
+
+---
+
+## F-23 · One of the five missing controls was already in the repository
+
+**Believed.** The Stage −1 control panel supplies zero runnable controls
+(F-16), and closing that gap needed sequences from outside this environment:
+STCRDab or TCR3d, fetched by hand. The panel itself lived in a test fixture,
+`liu_controls()` in `tests/contract/test_control_panel.py`, so the campaign
+package could not read it and the go/no-go was asserted in prose rather than
+computed.
+
+**Checked.** Making the panel a data file and loading it surfaced three things
+in one pass, none of which needed the network.
+
+1. **The panel has two single-residue controls, not one.** F-3 counted one in
+   the *Liu* panel, correctly. The 7OW6 TCR, recorded separately in
+   `PROVENANCE.md` as an additional control, discriminates `VVVGADGVGK` from
+   `VVVGAGGVGK` — one mid-peptide position, the campaign's own problem. Two
+   true statements about different sets, and only the narrower one was ever
+   computed.
+2. **Its sequences are in `structures/7OW6.cif`.** Chains D and E of a file
+   the repository has held since 2 November. One of the five controls needed
+   acquiring from nowhere.
+3. **Extracting them the obvious way produces a protein that does not exist.**
+   `chain_sequence` sorts modelled residues by number and concatenates. Chain
+   D of 7OW6 resolves **181 of 203** residues across **three internal gaps**
+   (152→157, 167→175, 185→189), so the naive sequence is a continuous 181-mer
+   splicing residues 152 and 157 together. Folded as a positive control, it
+   would have calibrated the operating point against a chimera.
+
+**The correct source was in the same file.** `entity_poly.pdbx_seq_one_letter_code_can`
+is the construct as crystallised, unmodelled residues included: 203 and 246
+residues, matching exactly what `PROVENANCE.md` recorded from the deposition.
+The coordinates say what was *seen*; the deposition record says what was
+*there*, and a sequence to fold must come from the second.
+
+**Changed.** The panel is `campaigns/kras-g12d-pmhc/controls/controls.yaml`,
+read by `load_catalogue`, which validates on the way in — crystal seeding,
+repeated names, a negative with no registered failure gate. `chain_sequence`
+refuses a gapped chain unless the caller passes `allow_gaps`, and
+`construct_sequences` reads the deposition record. `Control` carries
+`binder_chains` for a multi-chain binder, and `negative_from` refuses to
+derive a scrambled negative from one, because scrambling one chain of a pair
+does not fail the gate it would be registered to fail at.
+
+**The floor moves: usable 0 → 1, shortfall 5 → 4.** Still short, and the
+remaining four still need STCRDab or TCR3d. But the count is now computed from
+a file anyone can add a row to, and `tests/contract/test_control_catalogue.py`
+is the live status rather than a sentence in a report.
+
+**What this says about the premortem.** F-22 found a gate with no
+implementation; this found a *measurement* with no instrument. Both had been
+described accurately in prose — `PROVENANCE.md` names the 7OW6 TCR, states its
+chain lengths, and says the sequences must come from the structure. Everything
+needed was written down and nothing computed it, so the shortfall was reported
+as five for two days while four was the true number. Prose that is correct is
+not the same as a quantity that is measured, and only the second one changes
+when the facts do.

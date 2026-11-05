@@ -15,6 +15,7 @@ from counterscreen.geometry.validity import check_geometry, find_disulfides, is_
 from counterscreen.targets.prepare import (
     DISULFIDE_MAX_ANGSTROM,
     MIN_PMHC_DISULFIDES,
+    PreparationError,
     chain_sequence,
     read_pdb,
 )
@@ -335,3 +336,43 @@ def test_the_geometry_script_names_the_formats_it_accepts() -> None:
 
     with pytest.raises(SystemExit, match=r"\.cif"):
         read_structure(Path("structures/7OW4.xyz"))
+
+
+def test_a_chain_with_unmodelled_residues_refuses_to_give_a_sequence() -> None:
+    """`FINDINGS.md` F-23: joining the modelled residues invents a protein.
+
+    Chain D of 7OW6 resolves 181 of 203 residues across three internal gaps.
+    Sorting by residue number and concatenating returns a continuous 181-mer
+    that splices non-adjacent residues together.
+    """
+    from counterscreen.targets.prepare import (  # noqa: PLC0415
+        chain_sequence,
+        construct_sequences,
+        read_cif,
+    )
+
+    source = Path(__file__).resolve().parents[2] / "structures" / "7OW6.cif"
+    if not source.exists():
+        pytest.skip(f"{source} not available")
+    structure = read_cif(source)
+
+    with pytest.raises(PreparationError, match="unmodelled residues"):
+        chain_sequence(structure, "D")
+
+    spliced = chain_sequence(structure, "D", allow_gaps=True)
+    assert len(spliced) == 181
+
+    construct = construct_sequences(source)
+    assert len(construct["D"]) == 203
+    assert len(construct["E"]) == 246
+    # The observed residues are a subsequence of the construct, not equal to it.
+    assert spliced != construct["D"]
+    assert construct["D"].startswith(spliced[:40])
+
+
+def test_an_ungapped_chain_still_gives_its_sequence() -> None:
+    """The guard must not refuse the chains the campaign actually uses."""
+    from counterscreen.targets.prepare import chain_sequence  # noqa: PLC0415
+
+    assert chain_sequence(load("T_plus"), "C") == G12D
+    assert chain_sequence(load("D1_wild_type"), "C") == WILD_TYPE

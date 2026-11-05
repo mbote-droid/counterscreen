@@ -1,0 +1,155 @@
+# The Stage -1 control panel, as data.
+#
+# PROTOCOL.md 5.0 makes this a blocking Day-1 task and SETUP.md 3.5 fixes what
+# every control must record. PROVENANCE.md beside this file carries the
+# narrative and the sources; this file is what the code reads, so the go/no-go
+# in PREREGISTRATION.md 6b is computed from it rather than asserted in prose.
+#
+# Add a control by adding an entry. The floor recomputes, and
+# tests/contract/test_control_catalogue.py reports the new state.
+#
+# Fields
+#   name                 unique within the panel
+#   role                 positive | negative | invariant_surface
+#   allele               HLA allele the control is presented on
+#   target               what the control is a binder for
+#   on_target_peptide    the peptide it is meant to bind
+#   off_target_peptides  list of {peptide, name}; the nearest one sets difficulty
+#   binder_sequence      full chain, foldable. Omit when not yet obtained:
+#                        a control without one cannot be folded and so cannot
+#                        calibrate anything (FINDINGS.md F-16)
+#   source               citation precise enough to find the value again
+#   seed_provenance      designed | crystal. Must be `designed`: a control
+#                        seeded from its deposited pose leaks the answer
+#                        (PROTOCOL.md 5.2 rule 1), and validate_panel refuses
+#                        a panel containing one
+#   expected_gate        required on negatives: the gate it is registered to
+#                        fail at (PROTOCOL.md 5.4)
+
+positives:
+  # --- Published pMHC-I binders, Liu et al. 2024 [R10], Supplementary Table 1.
+  # Read from the page images; the preprint publishes no binder sequences, so
+  # every one of these is unfoldable until they are obtained (FINDINGS.md F-3).
+  - name: MAGE-A3
+    allele: "A*01:01"
+    target: MAGE-A3
+    on_target_peptide: EVDPIGHLY
+    off_target_peptides:
+      - {peptide: ESDPIVAQY, name: TTN}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  - name: HIV-Env
+    allele: "A*02:01"
+    target: HIV-Env
+    on_target_peptide: KLTPLCVTL
+    off_target_peptides:
+      - {peptide: KLQELCCTL, name: YES1}
+      - {peptide: KLNPVCCEL, name: ATG2B}
+      - {peptide: KLIPLCHQL, name: CTNNAL1}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  - name: WT1
+    allele: "A*02:01"
+    target: WT1
+    on_target_peptide: RMFPNAPYL
+    off_target_peptides:
+      - {peptide: RLFPNLPEL, name: ARHGEF11}
+      - {peptide: HLYPNTPYA, name: APEX1}
+      - {peptide: RMFPTPPSL, name: MED13L}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  - name: SARS-CoV-M
+    allele: "A*02:01"
+    target: SARS-CoV-M
+    on_target_peptide: GLMWLSYFV
+    off_target_peptides:
+      - {peptide: GLAWLSLFV, name: KCNK5}
+      - {peptide: GLIFSSYFV, name: KCNQ1}
+      - {peptide: SLMYLSYLV, name: ELOVL6}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  - name: MART-1
+    allele: "A*02:01"
+    target: MART-1
+    on_target_peptide: ELAGIGILTV
+    off_target_peptides:
+      - {peptide: GLMGAGIAQV, name: HADHA}
+      - {peptide: SLAGLGLWLL, name: LY6G6C}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  - name: gp100
+    allele: "A*02:01"
+    target: gp100
+    on_target_peptide: YLEPGPVTA
+    off_target_peptides:
+      - {peptide: FQDPVPLTV, name: TRIM24}
+      - {peptide: YLQPWPVDV, name: ASB6}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  - name: PAP
+    allele: "A*02:01"
+    target: PAP
+    on_target_peptide: TLMSAMTNL
+    off_target_peptides:
+      - {peptide: TLMSMVANL, name: PSMB3}
+      - {peptide: TLFSALTGL, name: ZMPSTE24}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  - name: PRAME
+    allele: "A*02:01"
+    target: PRAME
+    on_target_peptide: ALYVDSLFFL
+    off_target_peptides:
+      - {peptide: ILYVDPLPMI, name: ATP2A1}
+      - {peptide: MLTLNSIFYV, name: ABCA5}
+      - {peptide: LMYLGSLAFL, name: ADM}
+      - {peptide: YLSIDSALFV, name: PQLC1}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  # The single-residue discrimination in the published panel, and the one
+  # structurally equivalent to this campaign: a point-mutant neoantigen
+  # against its wild type, differing at one mid-peptide position. Its result
+  # is reported separately from the panel aggregate (PROVENANCE.md).
+  - name: CTNNB1-S5F
+    allele: "A*03:01"
+    target: CTNNB1 S5F
+    on_target_peptide: TTAPFLSGK
+    off_target_peptides:
+      - {peptide: TTAPSLSGK, name: CTNNB1}
+    source: "Liu et al. 2024 [R10], Supplementary Table 1"
+
+  # --- The receptor from this campaign's own template.
+  # Binds both the mutant and the wild-type complex (FINDINGS.md F-6), so it
+  # is a positive control for engagement and weaker evidence for
+  # discrimination. Chains D (203 aa) and E (246 aa) of 7OW6; the sequences
+  # are obtainable from the deposited structure, but the control must be
+  # folded from sequence like any design, never seeded from the pose.
+  - name: 7OW6_TCR
+    allele: "A*11:01"
+    target: KRAS G12D
+    on_target_peptide: VVVGADGVGK
+    off_target_peptides:
+      - {peptide: VVVGAGGVGK, name: KRAS wild type}
+    source: "Poole et al., Nat Commun 2022 [R12], PDB 7OW6 chains D and E"
+    seed_provenance: designed
+    # The construct sequences from the deposition's own entity_poly record,
+    # not the modelled coordinates: chain D resolves only 181 of its 203
+    # residues, across three internal gaps (FINDINGS.md F-23). Folded from
+    # sequence like any design; the pose is never handed to the model.
+    binder_chains:
+      - "AQKVTQAQTEISVVEKEDVTLDCVYETRDTAYYLFWYKQPPSGELVFLIRQPWWGEQNEISGRYSWNFQKSTSSFNFTITASQVVDSAVYFCAMSVPSGDGSYQFTFGKGTKLSVIPNIQNPDPAVYQLRDSKSSDKSVCLFTDFDSQTNVSQSKDSDVYITDKCVLDMRSMDFKSNSAVAWSNKSDFACANAFNNSIIPEDT"  # alpha, 203 aa
+      - "MNAGVTQTPKFRVLKTGQSMTLLCAQDMNHEYMYWYRQDPGMGLRLIHYSVGEGTTAKGEVPDGYNVSRLKKQNFLLGLESAAPSQTSVYFCASKVGPGQHNSPLHFGNGTRLTVTEDLNKVFPPEVAVFEPSEAEISHTQKATLVCLATGFYPDHVELSWWVNGKEVHSGVCTDPQPLKEQPALNDSRYALSSRLRVSATFWQDPRNHFRCQVQFYGLSENDEWTQDRAKPVTQIVSAEAWGRAD"  # beta, 246 aa
+
+# Supplementary single-residue controls, required by the floor arithmetic in
+# PROVENANCE.md. Sources in SETUP.md 4.2: STCRDab and TCR3d give complete
+# chains and documented specificity together, which VDJdb and IEDB do not.
+#
+# Each needs: the same binder tested against two peptides differing at exactly
+# one position, an outcome recorded for each, and a full foldable sequence.
+# Five are needed. Add them here as they are obtained.
+supplementary: []
+
+negatives:
+  # Derived from the positives at run time by panel.negative_from, which needs
+  # the binder sequences. Listed here only where a negative is not derived.
+  []

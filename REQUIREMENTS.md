@@ -91,6 +91,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 | E-08 | No target shall appear in both train and test splits | — | **pending** — needs the evaluation set |
 | E-09 | The Stage −1 floor shall count only controls that can be folded | five single-residue controls with no sequences do not meet it | **verified** — `FINDINGS.md` F-16 |
 | E-10 | A derived negative control shall differ from its positive | identity shuffle and palindromic reversal refused | **verified** — `FINDINGS.md` F-16 |
+| E-11 | The control panel shall be data the campaign reads, not a test fixture | `load_catalogue` over `controls.yaml`; the floor is asserted from it | **verified** — `FINDINGS.md` F-23 |
+| E-12 | A control's sequence shall come from the construct, not the modelled coordinates | gapped chain refused; `entity_poly` gives 203 and 246 aa | **verified** — `FINDINGS.md` F-23 |
+| E-13 | A negative shall not be derived from a multi-chain control | refused for the 7OW6 TCR | **verified** — `FINDINGS.md` F-23 |
 
 ## P · Provenance and reproducibility
 
@@ -142,9 +145,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 81 |
+| Verified | 84 |
 | Pending | 4 |
-| **Total** | **85** |
+| **Total** | **88** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

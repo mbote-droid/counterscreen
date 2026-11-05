@@ -22,6 +22,7 @@ cross-reference, not a decoy.
 """
 
 import dataclasses
+import itertools
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -154,14 +155,56 @@ def select_chains(structure: Structure, chains: Sequence[str]) -> Structure:
     )
 
 
-def chain_sequence(structure: Structure, chain: str) -> str:
-    """One-letter sequence of a chain, in residue-number order."""
+def chain_sequence(structure: Structure, chain: str, allow_gaps: bool = False) -> str:
+    """One-letter sequence of a chain's *modelled* residues, in number order.
+
+    Refuses a chain with unmodelled residues in the middle. Sorting by residue
+    number and concatenating would splice non-adjacent residues together and
+    return a sequence the protein does not have: chain D of 7OW6 is missing 14
+    residues across three internal gaps, and the naive sequence reads as a
+    continuous 181-mer (`FINDINGS.md` F-23). For a sequence to fold, read the
+    construct with :func:`construct_sequences` instead, which carries the
+    unmodelled residues too.
+
+    ``allow_gaps`` returns the spliced sequence anyway, for callers that want
+    the modelled residues only and have said so.
+    """
     seen: dict[int, str] = {}
     for residue in structure.residues:
         if residue.chain == chain:
             letter = one_letter_code(residue.name)
             seen[residue.number] = letter.upper() if letter else "X"
-    return "".join(seen[number] for number in sorted(seen))
+    numbers = sorted(seen)
+    if not allow_gaps:
+        gaps = [(a, b) for a, b in itertools.pairwise(numbers) if b != a + 1]
+        if gaps:
+            msg = (
+                f"chain {chain!r} has unmodelled residues at {gaps}; joining the "
+                "modelled ones would return a sequence this protein does not have. "
+                "Use construct_sequences() for a foldable sequence, or pass "
+                "allow_gaps=True for the modelled residues only"
+            )
+            raise PreparationError(msg)
+    return "".join(seen[number] for number in numbers)
+
+
+def construct_sequences(path: Path) -> dict[str, str]:
+    """Full construct sequence per chain, from the deposition's own record.
+
+    ``entity_poly.pdbx_seq_one_letter_code_can`` is what was crystallised,
+    including residues the model does not resolve, which is the sequence to
+    fold a control from. The coordinates give only what was observed: for
+    7OW6 chain D that is 181 residues against a 203-residue construct.
+    """
+    poly = CIFFile.read(path).block["entity_poly"]
+    strands = poly["pdbx_strand_id"].as_array()
+    sequences = poly["pdbx_seq_one_letter_code_can"].as_array()
+    found: dict[str, str] = {}
+    for row in range(len(strands)):
+        sequence = "".join(str(sequences[row]).split())
+        for chain in str(strands[row]).split(","):
+            found[chain.strip()] = sequence
+    return found
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
