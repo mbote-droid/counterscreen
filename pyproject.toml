@@ -48,7 +48,7 @@ dependencies = [
 # Full Bayesian rung of the pre-registered random-effects ladder. Optional
 # because the switch rule only reaches for it when the simpler rungs fail to
 # identify; CI never installs it.
-bayes = ["pymc>=5.16,<6", "arviz>=0.18,<1"]
+bayes = ["pymc>=5.16,<6", "arviz>=0.18,<2"]
 
 [project.scripts]
 counterscreen = "counterscreen.__main__:main"
