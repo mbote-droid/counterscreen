@@ -96,6 +96,7 @@ A requirement with no verification method is not a requirement; it is a wish.
 | R-08 | A hand-typed confidence level shall fail the build | `95% CI` in prose is reported as a bare numeral | **verified** — the exclusion was removed (`FINDINGS.md` F-4) |
 | R-09 | A registered constant shall be citable without a result file, and a result file shall not redefine one | `[[ci.level]]` resolves against `{}` and is not shadowed | **verified** |
 | R-10 | The interval's confidence level and its normal quantile shall not be able to disagree | quantile derived from the level; coverage recomputed in a test | **verified** |
+| R-11 | Every claim a project document makes about itself shall be asserted against the code, not typed | funnel order, requirements coverage and identifiers, findings evidence classes | **verified** — the census that prompted this found 4 of 5 wrong (`FINDINGS.md` F-10) |
 | R-03 | A result newer than the document shall fail the build | mtime comparison | **verified** |
 | R-04 | Metrics shall round to a fixed significance | 6 significant digits | **verified** |
 | R-05 | The funnel shall balance stage to stage | unbalanced funnel refused at construction | **verified** |
@@ -118,9 +119,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 57 |
+| Verified | 58 |
 | Pending | 4 |
-| **Total** | **61** |
+| **Total** | **62** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

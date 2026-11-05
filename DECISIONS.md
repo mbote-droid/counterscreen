@@ -387,7 +387,7 @@ which is the weakest route because it fires only when the agent happens to
 look — and in one case fired *after* the output had already reached the user.
 
 **What that implies.** Adding tests after the fact detects errors. Making
-errors inexpressible prevents them. Four guards in this build are of the
+errors inexpressible prevents them. Six guards in this build are of the
 second kind:
 
 | Guard | Error class made impossible |
@@ -396,10 +396,30 @@ second kind:
 | G2 has **no config field** | Re-importing a literature threshold (D-4) |
 | `CounterScreen` holds **one design** | Pooling SD across designs (D-1) |
 | `fold()` refuses a design not stamped G0-passed | Spending a GPU-hour on an invalid structure |
+| `NoiseFloor` is a **required** argument of `exceeds_noise`, and `rank_arm` takes no float | Judging a margin against the weaker of two readings of `pooled SD` by omission (D-5, amendment A9) |
+| Registered constants are keys, with **no exclusion** for a stated confidence level | Prose stating a confidence level the interval was not computed at (`FINDINGS.md` F-4) |
 
 Each converts a documented rule into one the code cannot break. That is the
 distinction `PROTOCOL.md` §12.3b asks for between caught-by-automation and
 caught-by-review, applied forward rather than backward.
+
+**The failure mode of a guard that works — found late, and worth the most.**
+The six guards above make an error class inexpressible, and the numeric claim
+checker of `DESIGN.md` §9b does the same for values typed into prose. It
+works. What it does not cover is everything a document asserts *about itself*:
+the order of its rows, a count of them, an identifier, a table's coverage of
+its own file. A complete census of those found **4 of 5 wrong**, three days
+after the values in the same documents had been machine-resolved
+(`FINDINGS.md` F-10).
+
+The guard did not fail. Its success defined a class of fact as handled, and
+the facts just outside that class inherited the confidence without inheriting
+the guard. The question that found them is not *does this check pass* but
+**what does a passing check not cover**, which belongs in the method at the
+same place as asking what a positive control would fail to detect. Three
+documents now have their self-descriptions asserted rather than typed:
+`tests/contract/test_funnel_documents.py`, `test_requirements_document.py`
+and `test_findings_document.py`.
 
 **A caveat against over-reading the type guard.** It did not work on the first
 attempt. mypy rejected `REU + KcalPerMol` statically while the runtime method

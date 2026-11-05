@@ -239,3 +239,22 @@ the rows and compares them with the coverage table, asserts each row is
 verified or pending and not both, asserts every verified row names a
 verification method, and asserts identifiers are unique. The duplicate ID was
 caught by that last assertion on its first run.
+
+### ISSUE-020 · The evidence-class table stopped two findings short · 5 Nov
+
+**Symptom.** Found while writing FINDINGS F-10, which is the finding these
+four issues add up to. The evidence-class table at the head of `FINDINGS.md`
+carried rows for F-1 to F-7 while the file held entries through F-9.
+**Diagnosis.** The same class as ISSUE-018 and ISSUE-019, and the fourth
+instance of it: a table about the document, maintained by hand, that nothing
+read. It matters more here than in the other two, because the file's own
+preamble says the evidence class governs what may be written from a finding
+and that a reader cannot infer it from the finding alone. A finding with no
+row is a finding with no stated licence, and F-8 is the one most likely to be
+cited outside this project.
+**Fix.** Rows added for F-8, F-9 and F-10. The ranking paragraph above the
+table, which also listed only part of the file, now accounts for all ten.
+**Regression test.** `tests/contract/test_findings_document.py` asserts every
+`F-n` entry has an evidence-class row, that the table names no finding that
+does not exist, that numbering is unique and ordered, and that no row leaves
+the "does not license" column empty.

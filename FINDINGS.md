@@ -24,13 +24,21 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-5** | Standard measurement, one structure | That M1's specified handle does not exist and Asp6 is largely buried | **Not a discovery.** `PROTOCOL.md` §3.3 predicted this in prose; the contribution is quantifying it and acting before GPU spend. SASA and contact distances on a deposited structure are routine |
 | **F-6** | Controlled structural comparison | That the known discriminator reads accessible positions that move rather than the buried one that changes | **The substantive finding.** Still one receptor, one structure pair, and that receptor binds both complexes — so it evidences *how it binds* more strongly than *how it discriminates* |
 | **F-7** | Derivation from F-5 | That M1 reduces to a single target | A corollary of F-5, not independent evidence |
+| **F-8** | Direct power measurement on a synthetic two-site curve | That the registered 1:1 adequacy test has no power at the series length a real SPR experiment supplies, so it belongs on kinetic residuals | Nothing about whether the returned fits *are* 1:1 adequate — that needs the sensorgrams. The power figures are for one two-site curve, not a general power curve |
+| **F-9** | Negative control on five deposited structures | That the gate as first written rejected experimentally determined coordinates, and that two implementation defects caused it | Nothing about the 1% threshold, which never moved. It does not license calling the gate validated: five structures of one complex class is not a validation set |
+| **F-10** | Complete audit of the repository's hand-maintained document facts, n = 5 | That numeric provenance covering a document's *values* leaves its claims *about itself* unguarded, and that in this project 4 of 5 such facts were wrong | Nothing about other projects' tooling. Only hand-maintained facts were audited, so it does not license "these were the only unguarded claims" |
 
-**Ranked by what a reader should care about: F-6, then F-1, then the rest.**
-F-6 proposes a mechanism with a testable consequence — that a binder reading
-positions 7–9 geometry can discriminate without contacting position 6. F-1
-poses a question nobody has answered. F-5 and F-7 are engineering diligence:
-they corrected a plan before it cost anything, which is valuable to this
-project and not a contribution to the field.
+**Ranked by what a reader should care about: F-6, then F-1, then F-8, then the
+rest.** F-6 proposes a mechanism with a testable consequence — that a binder
+reading positions 7–9 geometry can discriminate without contacting position 6.
+F-1 poses a question nobody has answered. F-8 is transferable: anyone testing
+1:1 adequacy on an eight-point isotherm is reporting statistical power rather
+than a binding model, and that mistake is not specific to this project. F-5
+and F-7 are engineering diligence: they corrected a plan before it cost
+anything, which is valuable to this project and not a contribution to the
+field. F-9 and F-10 are findings about this build's own instruments — a gate
+that rejected its positive controls, and a guard aimed at the wrong class of
+fact.
 
 None of them is a result about a design. Nothing in this pipeline has been
 run.
@@ -494,3 +502,64 @@ than against synthetic fixtures — which had all passed.
 reference implementation (`build_rules.pdf` §2.7) is still outstanding; what
 has changed is that it now agrees with five experimental structures rather
 than disagreeing with three of them.
+
+---
+
+## F-10 · The numeric guard covered the documents' values, not their claims about themselves
+
+**Believed.** `DESIGN.md` §9b was treated as the answer to stale numbers in
+prose: every value in a generated document is written as a key, resolved from
+a result file, and CI fails on a bare numeral, an unknown key, or a document
+older than its inputs. With that in place the documents were considered
+guarded, and the remaining risk was taken to be the one the checker itself
+names — a correct value attached to the wrong concept.
+
+**Checked.** Amendment A10 moved G8 to the front of the gate cascade, which
+changes every per-stage funnel count while changing no survivor at all. That
+made the funnel tables worth re-reading, and the re-read turned into a census:
+every fact a document asserts *about itself*, rather than every value *in*
+it. Five such facts existed. Four were wrong.
+
+| Hand-maintained document fact | State when audited |
+|---|---|
+| `METHODS.md` §8.7 funnel row order | Wrong. G5 listed after G4 — an ordering the pipeline never ran, in any version |
+| Campaign `REPORT.md` funnel row order | Correct until A10, stale after it, with nothing to notice |
+| `REQUIREMENTS.md` coverage counts | Wrong. Claimed 43 verified of 49, against 57 rows of which 53 were verified |
+| `REQUIREMENTS.md` identifiers | Wrong. A new row was added as G-08, which already existed |
+| `FINDINGS.md` evidence-class table | Wrong. Stopped at F-7 while F-8 and F-9 existed — found while writing this entry |
+
+**What it shows.** The four kinds of fact the checker cannot see are the
+**order** of rows, a **count** of rows, an **identifier**, and a table's
+**coverage** of its own document. Each of these resolves perfectly under the
+claim checker, because each is about the document's structure rather than
+about a number in it.
+
+The funnel is the sharpest case. A per-stage count means nothing except
+relative to the stages before it, so a correct count in the wrong row is
+*worse* than a missing one: it reads as a result, it survives every check, and
+the pipeline it describes was never run. The same holds for a results table in
+a manuscript — row order is a claim, and nothing in a reference manager or a
+figure script checks it.
+
+The ratio is what makes this a finding rather than three incidents. These were
+not sampled; the census was complete, and 4 of 5 were wrong after the *values*
+in the same documents had been machine-resolved for three days. The guard did
+not fail. It was pointed at one class of fact, and its success there is what
+made the adjacent class feel covered.
+
+**Changed.** Each of the five is now derived from the code or asserted against
+it: `tests/contract/test_funnel_documents.py` parses the funnel keys out of
+both documents and compares them with `PIPELINE_ORDER`;
+`test_requirements_document.py` recounts the rows against the coverage table,
+requires a verification method on every verified row, and requires unique
+identifiers — which is what caught the collision on its first run;
+`test_findings_document.py` requires every `F-n` here to have an evidence-class
+row. `BUILD_JOURNAL.md` ISSUE-017 to ISSUE-020 carry the individual cases.
+
+**The general form, which is the part worth keeping.** `DECISIONS.md` D-6
+argues that guards which make an error inexpressible beat guards that detect
+it. This finding adds the failure mode of a *successful* guard: it defines a
+class of fact as handled, and the facts just outside that class inherit the
+confidence without inheriting the guard. Asking what a passing check does
+**not** cover is a different question from asking whether it passes, and only
+the first one found these.
