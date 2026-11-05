@@ -38,6 +38,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 | G-16 | Clash detection shall be linear in memory | KD-tree cross-checked against every pair | **verified** — `BUILD_JOURNAL.md` ISSUE-021 |
 | G-17 | Bond geometry shall be judged as a fraction of residues, not on the first outlier | one outlier fails at 55–100 residues and passes at 1,530 | **verified** — amendment A12, `FINDINGS.md` F-21 |
 | G-18 | Every deposited structure the project holds shall pass G0 | all ten, prepared targets and sources | **verified** — `FINDINGS.md` F-21 |
+| G-19 | G5 shall threshold on the largest contiguous apolar patch, not the total | 226 patches on the platform; largest is 6.6% of the total | **verified** — amendment A13, `FINDINGS.md` F-22 |
+| G-20 | The patch area G5 reads shall not depend on the fragment floor | largest patch unchanged from a 1-dot to a 16-dot floor | **verified** — `FINDINGS.md` F-22 |
+| G-21 | SASA shall be checked against an independent implementation | dot pass agrees with `biotite` to 0.04% over 878 atoms | **verified** — `build_rules.pdf` §2.7, `FINDINGS.md` F-22 |
 
 ## T · Targets
 
@@ -139,9 +142,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 78 |
+| Verified | 81 |
 | Pending | 4 |
-| **Total** | **82** |
+| **Total** | **85** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

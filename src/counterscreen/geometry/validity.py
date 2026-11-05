@@ -305,15 +305,19 @@ def chirality_improper(structure: Structure, residue: Residue) -> float:
 
 #: Sign of the N-CA-C-CB improper dihedral for an L-amino acid.
 #:
-#: Negative, matching the value of about -122 degrees that structure
-#: validation conventionally reports for L residues. The *relative* claim is
-#: proven: a test builds an ideal residue, reflects it, and asserts every
-#: improper is negated and that a structure and its mirror cannot both pass.
-#: The *absolute* claim -- that negative means L rather than D -- rests on
-#: that convention and has not yet been checked against an experimental
-#: structure. Confirming it against 7OW6, whose residues are L by
-#: construction, is owed as soon as real coordinates are available, and is
-#: exactly the differential test `build_rules.pdf` section 2.7 asks for.
+#: Negative. Both claims are now established rather than one.
+#:
+#: The *relative* claim is proven by construction: a test builds an ideal
+#: residue, reflects it, and asserts every improper is negated and that a
+#: structure and its mirror cannot both pass.
+#:
+#: The *absolute* claim -- that negative means L rather than D -- was recorded
+#: here as resting on convention and owed against an experimental structure.
+#: It was measured on 5 November over every side-chain-bearing residue of the
+#: five prepared targets: 1,409 residues, all negative, mean -122.1 degrees,
+#: range -129.1 to -111.2, which matches the value structure validation
+#: conventionally reports. `FINDINGS.md` F-15, and the stale note it replaced
+#: is what that finding is about.
 L_CHIRALITY_SIGN = -1.0
 
 

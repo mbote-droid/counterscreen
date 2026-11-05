@@ -340,3 +340,25 @@ accepted. Running the gate over all ten structures in one command is what
 found F-21, so the fix paid for itself immediately.
 **Regression test.** `test_the_geometry_script_names_the_formats_it_accepts`.
 The report also now carries `chain_gaps`.
+
+### ISSUE-026 · The patch pass percolated, then mis-ordered itself · 5 Nov
+
+**Symptom.** Three defects in one implementation, each caught by its own test
+rather than by review. (a) Adjacency over atom centres put 100% of a protein's
+exposed apolar area in one patch. (b) The ordering tie-break used each patch's
+lowest atom row, and two patches can share one: patches partition *dots*, so a
+side chain exposed on both sides of a polar ridge is in two of them. (c)
+Single-dot regions in crevices were being reported as patches.
+**Diagnosis.** (a) Exposed carbons are everywhere on a protein surface, so a
+distance graph over them is connected; contiguity of a surface is not a
+distance between atoms. (b) A property of the decomposition I had asserted
+without checking. (c) One dot on a carbon is 0.47 Å² at 256 dots, below the
+resolution the surface is sampled at.
+**Fix.** Connected components of accessible surface dots; `first_dot` as the
+tie-break, which is unique by construction; a four-dot floor, with the gated
+quantity shown to be invariant to it.
+**Also caught.** The F-13 duplicate-atom guard rejected my own test fixture —
+three atoms named `CB` in one residue — on its first run. The guard was right.
+**Regression test.** `tests/geometry/test_apolar_patches.py`, fifteen tests,
+including the percolation bound, the invariance of the gated quantity, that an
+atom may belong to two patches, and the differential test against `biotite`.

@@ -57,6 +57,7 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-19** | Reasoning from the metric's construction, supported by the chain composition of the prepared decoys | That `M_pep` and `M_var` compare complexes of different composition, so part of each is normalisation rather than discrimination, and that the registered invariant-surface control measures that bias | **Not yet measured.** No model has been run, so the bias's size and sign are argued from how interface metrics are normalised, not observed. It licenses treating the invariant control's `M_pep` as a calibration; it does not license a correction before that number exists |
 | **F-20** | Direct property of low-temperature sampling | That G1's stringency varies per backbone with sampling diversity, so the effective attempt count must be reported | Nothing about the pass rate, which needs a run. The convergence is a property of T = 0.1 sampling in general, not a measurement on this target |
 | **F-21** | Negative control on all ten structures the project holds | That the bond-geometry rule rejected a deposited structure on one residue 0.41° past tolerance, and that `PREREGISTRATION.md` §3 never listed the criterion | Nothing about the per-residue tolerances, which did not move. Ten structures from two deposition groups is not a validation set, and the τ-angle spread is cited from the ideal-geometry literature rather than measured here |
+| **F-22** | Implementation plus a differential test against the library, n = 878 atoms | That G5 had no implementation of its registered quantity, that atom-centre adjacency percolates, and that the dot pass agrees with `biotite` to 0.04% | Nothing about any design's patch area, since none exists. The 295.4 Å² figure is one construct. The contiguity convention is registered, not validated against an external patch tool |
 
 **Ranked by what a reader should care about: F-6, then F-1, then F-8 and F-18,
 then the rest.** F-6 proposes a mechanism with a testable consequence — that a binder
@@ -94,6 +95,7 @@ rather than by severity.
 
 | # | How it fails | Status |
 |---|---|---|
+| 0 | **A gate with no implementation of what it gates on.** G5 was created by amendment A1 so a registered negative control would have somewhere to fail, and reported the total apolar area rather than the largest contiguous patch — a different quantity, and one that cannot distinguish one large patch from thirty small ones | **Fixed.** F-22. The patch pass is implemented over surface dots, the gated quantity is invariant to its one free convention, and the differential test against the library came with it |
 | 1 | **Stage −1 has no input.** No model in the stack emits ipSAE or a PAE matrix with chain assignments, so §7.1 has nothing to score. The specificity margin is undefined and the neural arm does not start | **Open.** Decided by the Day-1 benchmark, which has not run. `benchmarks/day1_gpu_benchmark.md` calls it "the check that decides the project" |
 | 2 | **The control panel has no controls.** Stage −1 calibrates G2 and G3 against positive controls, and the published panel supplies **zero** runnable single-residue discriminations: the one that qualifies has no sequence. Nothing calibrates, so no operating point is derived and G2/G3 cannot be set | **Open and measured.** F-3 as sharpened by F-16. Needs the Liu sequences or the `SETUP.md` §4.2 substitutes |
 | 3 | **M1 is aimed at something that is not there.** 6.4 Å² of one carboxylate oxygen on an 85%-buried residue, whose other partner is modelled in two half-occupied conformations 6 Å apart, and which the only worked discriminator avoids entirely | **Acted on.** A7 cut M1 from nine designs to four; A8 redefined it; F-5, F-6, F-13 are the evidence. The arm is retained deliberately, at its reduced expected value |
@@ -1079,3 +1081,68 @@ against fixtures, and every one in the direction of rejecting reality. A gate
 written from an idealised specification will be too strict in ways the
 specification cannot show you, and the only instrument that finds them is a
 structure somebody solved.
+
+---
+
+## F-22 · G5 had no implementation of the quantity it gates on
+
+**Believed.** Everything buildable without a GPU, returned data or an
+unreachable source was built. `surface.py` reported the **total** exposed
+apolar area and said plainly that it was not the registered quantity —
+"contiguity needs a surface-adjacency pass that is not written yet... This is
+the honest intermediate." Being documented, it read as a known state rather
+than as outstanding work, and it survived a full premortem that was looking
+for exactly this.
+
+**Checked.** Amendment A1 created G5 specifically so that a registered
+negative control — the deliberately greasy surface — would have a gate to fail
+at, and registered it against *the largest contiguous solvent-exposed apolar
+patch*, calibrated at the 90th percentile of the positive control panel. The
+total and the largest patch are different quantities with different meanings:
+one surface carrying a single 300 Å² patch and another carrying thirty 10 Å²
+spots have the same total and very different aggregation liabilities. G5 could
+not have done the job it was created for. `REQUIREMENTS.md` also had **no row
+for G5 at all**, so the register could not show the gap either.
+
+**The first implementation percolated, which is the finding.** Adjacency over
+atom *centres* — the conventional "within 5 Å" patch rule — merged the entire
+protein surface into **one** patch covering 100% of the total apolar area. It
+is obvious in hindsight: exposed carbons are everywhere on a protein, so a
+graph over them is connected. A distance rule on atoms cannot express
+contiguity of a *surface*.
+
+**Changed.** Patches are connected components of the accessible surface
+**dots**: an independent Shrake–Rupley pass places dots on each atom's
+expanded sphere, keeps those outside every other atom's, and joins dots within
+1.8 mean dot separations. On the platform construct that gives 226 patches
+with the largest at **295.4 Å² over 27 atoms — 6.6% of the total apolar
+area**, which is the right order for a hydrophobic patch and a quantity G5 can
+threshold on.
+
+**Two properties make the new conventions safe to register.**
+
+1. **The gated quantity is invariant to the fragment floor.** Varying it from
+   1 to 16 dots moves the patch count from 618 to 101 and leaves the largest
+   patch at 295.4 Å² throughout. G5 reads the largest, so its verdict does not
+   depend on the one convention amendment A13 had to choose.
+2. **The threshold is a derivation rule.** G5's cutoff is the 90th percentile
+   of the control panel computed the same way, so a looser or tighter
+   adjacency moves the designs and the reference together rather than shifting
+   one against the other.
+
+**A differential test came free, and it is one the project owed.**
+`build_rules.pdf` §2.7 requires that a library doing something critical be
+either used plainly or re-implemented and tested against. The dot pass is an
+independent route to SASA, and it agrees with `biotite` to **+0.04% on the
+total**, correlation 0.999 over 878 atoms, mean per-atom difference 0.42 Å² at
+256 dots. That discharges the obligation for SASA. The equivalent test for the
+Ramachandran criterion remains outstanding and still needs a reference
+implementation this environment cannot reach.
+
+**Why the premortem missed it.** The audit asked what a *passing result* would
+not have told us, and `exposed_apolar_area` does not produce a passing result —
+it produces an honest disclaimer. A documented gap reads as a decision, and
+the sentence that makes it safe ("reporting a total as though it were a patch
+would overstate what is measured") is also what stops anyone looking again. It
+is F-10 one more time: the comment that handled the problem correctly is what
+made it invisible.
