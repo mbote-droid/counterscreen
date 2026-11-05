@@ -9,7 +9,7 @@ stage into 15–30 hours. **Do not plan from estimates.**
 Fill each row with the measured value and a pass or fail. A blank row is not a
 pass.
 
-**Run the cells in `scripts/kaggle_day1.py`**, and run the install and import
+**Run the cells in `scripts/kaggle/`**, one file per cell, pasted whole, and run the install and import
 cells with the **accelerator off**: neither needs a GPU, and a GPU session
 spends the 30 h/week quota at wall-clock rate whether or not the GPU is
 touched. `BUILD_JOURNAL.md` ISSUE-027 records why those cells stream their

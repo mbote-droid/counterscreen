@@ -137,6 +137,11 @@ ignore = [
 "tests/**" = ["S101", "D100", "D101", "D102", "D103", "D104", "ANN", "PLR2004", "SLF001"]
 # Scripts are operator-facing and may print.
 "scripts/**" = ["T20", "D100", "D103"]
+# The Kaggle cells shell out to pip and nvidia-smi by design, with literal
+# argument lists and no interpolated input. They are kept as runnable Python
+# rather than strings so the linter and type checker see them at all
+# (`BUILD_JOURNAL.md` ISSUE-029).
+"scripts/kaggle/**" = ["T20", "D100", "D103", "S603", "S607"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"

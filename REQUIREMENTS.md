@@ -108,6 +108,7 @@ A requirement with no verification method is not a requirement; it is a wish.
 | P-07 | A re-fitted K_D shall carry an uncertainty | non-finite standard error refused | **verified** |
 | P-08 | Specificity ratios shall propagate uncertainty, not divide points | multiplicative interval; log-symmetric | **verified** |
 | P-09 | The execution image digest shall be recorded at run time | — | **pending** — needs a GPU run |
+| P-10 | Operator-facing notebook cells shall be checkable by the project's own toolchain | every cell compiles, carries no notebook magic, and has a `main()` and a `__main__` guard | **verified** — `BUILD_JOURNAL.md` ISSUE-029 |
 
 ## R · Reporting
 
@@ -145,9 +146,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 84 |
+| Verified | 85 |
 | Pending | 4 |
-| **Total** | **88** |
+| **Total** | **89** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

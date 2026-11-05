@@ -409,3 +409,30 @@ what the model does not resolve -- which is the sequence to fold from.
 pins both the refusal and the 203/246 construct lengths, and
 `test_an_ungapped_chain_still_gives_its_sequence` pins that the peptide chains
 the campaign uses are unaffected.
+
+### ISSUE-029 · The notebook cells were strings, so nothing could check them · 5 Nov
+
+**Symptom.** The user pasted cell 0 into Kaggle and asked why it began
+`CELL_0 = r"""`. Pasted as written it assigns a string and runs nothing.
+**Diagnosis.** `scripts/kaggle_day1.py` held each cell as a module-level
+string constant. Two consequences, and the second is worse. The cells could
+not be copied -- the thing an operator-facing file exists to allow -- and the
+code inside the quotes was invisible to ruff, mypy and the compiler, so the
+project's whole toolchain ran over the file and checked none of it. Compiling
+the four strings by hand showed `CELL_1` was **not valid Python**: it carried
+`!timeout ...`, a notebook magic. A cell that could only have failed in front
+of the user shipped because the only thing that would have caught it was
+turned off by the quoting.
+**Fix.** `scripts/kaggle/cell0_environment.py` through `cell3_metrics.py`:
+one runnable file per cell, plain Python with no magics, so each runs
+unchanged in a Kaggle cell, in a terminal, and under `make check`. Cell 0 and
+cell 1 were then run here, which found a third defect: cell 1 reported
+"boltz does not resolve here" when the real cause was that this virtual
+environment has no pip. A diagnostic cell that reports the resolver's verdict
+when it could not run the resolver is worse than one that says nothing, so it
+now distinguishes the two.
+**Regression test.** `tests/contract/test_kaggle_cells.py` parses every cell,
+and asserts each compiles, uses no notebook-only syntax, has a `main()` and a
+`__main__` guard -- without the guard, pasting the file defines a function and
+does nothing, the same silent no-op as the string form -- and carries a
+docstring saying what it answers.
