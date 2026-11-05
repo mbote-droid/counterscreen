@@ -172,6 +172,14 @@ first has to **downgrade** a working numpy to 1.26.4, for which no 3.13 wheel
 exists, and build it from source. The image is further from boltz's
 constraints than a bare interpreter would be.
 
+**"Original environment" may not be older.** Kaggle pins to the image as of
+when the notebook was *created*, not to an archived old one. A notebook made
+in late 2026 has an original environment that is already Python 3.13, so the
+setting can be checked and change nothing. Re-run cell 0 after pinning rather
+than assuming; if it still reports 3.13, the cheapest next question is whether
+`numpy<2.0` is load-bearing at all, which `scripts/kaggle/cell1b_nodeps_probe.py`
+answers in a minute without compiling anything.
+
 **Fix.** Pin the notebook to an environment with **Python 3.12 or earlier**,
 where numpy 1.26.4 and scipy 1.13.x both have binary wheels and nothing
 compiles. That also removes the `requires-python` conflict for
