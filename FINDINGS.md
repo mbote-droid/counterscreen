@@ -7,6 +7,25 @@ reconstructing this afterwards produces a tidy narrative instead of a record.
 Nothing here is a result about a design. These are findings about the
 *inputs* and the *specification*.
 
+## When an entry is owed
+
+Named explicitly because the two entries that arrived late were both of kind
+(c), which had no name until F-10 gave it one. An entry is owed whenever:
+
+- **(a) a check rejected something it was built to accept** — a positive
+  control failing a gate, which `PROTOCOL.md` §5.3 already says means the gate
+  is wrong rather than the control. F-9.
+- **(b) a belief written into a specification file turned out to be false** —
+  a handle that does not exist, an accession that cannot be right, a panel
+  that does not reach its own floor. F-2, F-3, F-5, F-8.
+- **(c) a guard turned out not to cover the class it was assumed to cover** —
+  not a guard that failed, a guard that worked on a narrower class than the
+  confidence it created. F-4, F-10.
+
+A fix with a regression test and no change in belief is a build issue, not a
+finding, and belongs in `BUILD_JOURNAL.md`. The distinction is whether a
+reader of the specification would now read it differently.
+
 ---
 
 ## How strong is each finding, and what does it license
