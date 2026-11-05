@@ -189,3 +189,23 @@ def test_unique_keeps_the_first_occurrence() -> None:
     designer = FakeDesigner(sequences=[BINDER[:-1] + c for c in "AACDEFGH"])
     kept = unique_sequences(run(designer))
     assert dict(kept[0].history[0].params)["sample_index"] == "0"
+
+
+# --- G1's effective sample count (FINDINGS F-20) ----------------------------
+
+
+def test_the_effective_number_of_attempts_is_reported_not_assumed() -> None:
+    """Eight samples can be two sequences, and G1 is "best of eight".
+
+    At T = 0.1 ProteinMPNN converges, so the gate's stringency varies with
+    how diverse the sampling happened to be (`FINDINGS.md` F-20).
+    """
+    from counterscreen.sequence.mpnn import effective_attempts  # noqa: PLC0415
+
+    converged = run(FakeDesigner([BINDER] * 6 + [BINDER[:-1] + "W"] * 2))
+    assert len(converged) == 8
+    assert effective_attempts(converged) == 2
+    assert len(unique_sequences(converged)) == 2
+
+    diverse = run(FakeDesigner())
+    assert effective_attempts(diverse) == 8

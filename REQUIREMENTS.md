@@ -70,6 +70,7 @@ A requirement with no verification method is not a requirement; it is a wish.
 | S-10 | REU shall not be combinable with kcal/mol | type error and runtime `TypeError` | **verified** |
 | S-11 | The pooled SD used by G4 and the tie tolerance shall be one defined quantity | `tests/unit/test_noise.py`, `tests/property/test_margin_properties.py` | **verified** — amendment A9; `NoiseFloor` is required by `exceeds_noise` and by `rank_arm`, so neither reading can be selected by omission |
 | S-12 | TM-score symmetrisation shall be registered, not chosen per run | `symmetrise` takes the larger direction; the choice is shown to change the clustering | **verified** — amendment A11 |
+| S-13 | The number of distinct sequences a backbone offered G1 shall be reportable | `effective_attempts` over a converged sample | **verified** — `FINDINGS.md` F-20 |
 
 ## E · Evaluation and controls
 
@@ -136,9 +137,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 75 |
+| Verified | 76 |
 | Pending | 4 |
-| **Total** | **79** |
+| **Total** | **80** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

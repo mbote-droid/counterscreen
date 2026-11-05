@@ -16,6 +16,16 @@ confidence is fine, the margin is computed against a target the campaign never
 meant to screen. So the target sequence is compared before and after, and any
 change is refused.
 
+**"Best of eight" is eight samples, not eight sequences.** At T = 0.1
+ProteinMPNN converges, so a backbone can return eight samples carrying two
+distinct sequences. G1 is defined as the best of eight, and its stringency
+therefore varies with how diverse the sampling happened to be on that
+backbone: a backbone that yields two distinct sequences has had two attempts
+at the gate, not eight. :func:`unique_sequences` reports what is left after
+deduplication, and `FINDINGS.md` F-20 makes the count a reportable quantity
+rather than an assumption, because a funnel row that says "passed G1" means
+something different per backbone otherwise.
+
 This package must not know about folding or scoring (`DESIGN.md` §1). It emits
 candidate sequences and the provenance needed to reproduce them; whether they
 are any good is somebody else's question.
@@ -195,6 +205,10 @@ def unique_sequences(designs: Sequence[Design]) -> tuple[Design, ...]:
     fewer than eight distinct sequences. Carrying duplicates forward would
     inflate every funnel count in `METHODS.md` §8.7 without adding a single
     candidate.
+
+    The number dropped is itself a result: it is how many attempts G1 actually
+    received on that backbone (`FINDINGS.md` F-20). Use
+    :func:`effective_attempts` to record it rather than discarding it here.
     """
     seen: set[str] = set()
     kept: list[Design] = []
@@ -203,3 +217,13 @@ def unique_sequences(designs: Sequence[Design]) -> tuple[Design, ...]:
             seen.add(design.design_id)
             kept.append(design)
     return tuple(kept)
+
+
+def effective_attempts(designs: Sequence[Design]) -> int:
+    """How many distinct sequences a backbone actually offered G1.
+
+    Reported per backbone, because "passed G1, best of eight" describes a
+    different test on a backbone that produced eight distinct sequences than
+    on one that produced two (`FINDINGS.md` F-20).
+    """
+    return len({design.design_id for design in designs})

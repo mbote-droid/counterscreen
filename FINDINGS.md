@@ -55,6 +55,7 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-17** | Direct measurement on a synthetic curve with a known K_D, n = 2 noise levels | That a fit can report a K_D 154× above the highest concentration tested with 0.34 relative error and no flag, and that the existing guards cannot see it | Nothing about the returned data, which does not exist yet. Two noise levels on one curve shape, so the 4-fold spread is an illustration, not a general error model |
 | **F-18** | Exact algebraic identity, verified against the mass-action code to machine precision | That realised discrimination is `r(1 − x) + x` in target occupancy, so a K_D ratio is its best case at vanishing dose | **No new biology.** Mass action is textbook, and the identity follows in two lines. It licenses a claim-discipline requirement — a ratio means nothing without a stated occupancy — not a discovery |
 | **F-19** | Reasoning from the metric's construction, supported by the chain composition of the prepared decoys | That `M_pep` and `M_var` compare complexes of different composition, so part of each is normalisation rather than discrimination, and that the registered invariant-surface control measures that bias | **Not yet measured.** No model has been run, so the bias's size and sign are argued from how interface metrics are normalised, not observed. It licenses treating the invariant control's `M_pep` as a calibration; it does not license a correction before that number exists |
+| **F-20** | Direct property of low-temperature sampling | That G1's stringency varies per backbone with sampling diversity, so the effective attempt count must be reported | Nothing about the pass rate, which needs a run. The convergence is a property of T = 0.1 sampling in general, not a measurement on this target |
 
 **Ranked by what a reader should care about: F-6, then F-1, then F-8 and F-18,
 then the rest.** F-6 proposes a mechanism with a testable consequence — that a binder
@@ -81,6 +82,41 @@ None of them is a result about a design. Nothing in this pipeline has been
 run.
 
 ---
+
+## Premortem: how this campaign fails
+
+Written on 5 November 2026, before Stage −1, by auditing every module for the
+failure that has not fired yet rather than for the one that has. The question
+was not "does it pass" but "what would a passing run have hidden". F-11 to
+F-20 came out of it; this is what they add up to, ordered by expected cost
+rather than by severity.
+
+| # | How it fails | Status |
+|---|---|---|
+| 1 | **Stage −1 has no input.** No model in the stack emits ipSAE or a PAE matrix with chain assignments, so §7.1 has nothing to score. The specificity margin is undefined and the neural arm does not start | **Open.** Decided by the Day-1 benchmark, which has not run. `benchmarks/day1_gpu_benchmark.md` calls it "the check that decides the project" |
+| 2 | **The control panel has no controls.** Stage −1 calibrates G2 and G3 against positive controls, and the published panel supplies **zero** runnable single-residue discriminations: the one that qualifies has no sequence. Nothing calibrates, so no operating point is derived and G2/G3 cannot be set | **Open and measured.** F-3 as sharpened by F-16. Needs the Liu sequences or the `SETUP.md` §4.2 substitutes |
+| 3 | **M1 is aimed at something that is not there.** 6.4 Å² of one carboxylate oxygen on an 85%-buried residue, whose other partner is modelled in two half-occupied conformations 6 Å apart, and which the only worked discriminator avoids entirely | **Acted on.** A7 cut M1 from nine designs to four; A8 redefined it; F-5, F-6, F-13 are the evidence. The arm is retained deliberately, at its reduced expected value |
+| 4 | **The margin is partly an artefact.** `M_pep` compares complexes of different composition, and interface confidence is a normalised quantity, so some of the margin is the metric rewarding a smaller interface — in the same direction as the signal | **Open, instrument identified.** F-19. The registered invariant-surface control measures the bias; it must be read as a calibration when Stage −1 runs |
+| 5 | **A returned K_D that the data cannot determine.** A standard five-point series fits a weak binder to a K_D 154× above the top concentration with respectable error bars, and the ratio built from it would carry an interval | **Fixed.** F-17. Identifiability is checked, an unidentified fit is not called fitted, and the ratio refuses to propagate one |
+| 6 | **A gate rejecting correct structure.** G0 failed three of five deposited structures on Ramachandran artefacts, then 7OW4 on an unmodelled loop, and its clash cutoff sits 0.02 Å below a real disulfide — in a pipeline where G8 forces designs to carry disulfides | **Fixed, three times.** F-9, F-11, F-12. Six of six deposited structures now pass, and the 1% threshold never moved |
+| 7 | **A number that is wrong and looks right.** An unparsed element reading as zero exposure, a conformer chosen by file order, an alignment bound discarded by operator precedence, an untested check reporting as a pass | **Fixed and made inexpressible.** F-13, F-14, ISSUE-021 to ISSUE-023. None had reached a recorded result: the prepared targets regenerate byte-identical and the hotspots re-derive identical |
+| 8 | **A claim the ranked objective does not support.** The K_D ratio is its own best case at vanishing dose; realised discrimination is `r(1 − x) + x` in occupancy, so a hundredfold ratio is tenfold at 90% | **Fixed in the claim discipline.** F-18. The trade-off is computable, and a ratio now licenses a statement only at a stated occupancy |
+| 9 | **The cheap gate is not cheap.** G0 peaked at 10 GB on a four-copy asymmetric unit and 632 MB on one complex, which on a 16 GB box with a model loaded is the step that exhausts it | **Fixed.** ISSUE-021, now 3 MB and 16 MB |
+
+**What the audit says about where to look.** Nine failure modes, and the
+reasons they stayed hidden fall into three groups. Three were **silent
+coercions and silent choices** — NaN to zero, the last conformer, a discarded
+bound — which are invisible exactly where the coerced value is a plausible
+answer. Three were **absence read as presence**: zero outliers out of zero
+residues, adequacy from a test with no power, a floor met by controls that
+cannot run. Three were **a guard working on a narrower class than the
+confidence it created**, which is F-10's shape: the claim checker and the
+documents' self-descriptions, sequence adjacency and the disulfide bond,
+`unique_sequences` and what the deduplication count meant.
+
+None of them would have been found by running the pipeline and reading the
+output, because each produces output that looks correct. They were found by
+asking, module by module, what a passing result would not have told us.
 
 ## F-1 · 7OW4 has no density at the discriminating residue, in all four copies
 
@@ -968,3 +1004,29 @@ it. Recorded as a reading of the registered condition rather than a new
 control, so no amendment is needed — but it must be applied when Stage −1
 runs, and it is the one number that can tell the difference between a
 peptide-dependent binder and a metric that rewards a smaller interface.
+
+---
+
+## F-20 · "Best of eight" is eight samples, not eight sequences
+
+**Believed.** G1 is registered as the best of eight ProteinMPNN sequences per
+backbone, and the count is treated as part of the gate's definition —
+`mpnn.py` refuses to sample a different number for exactly that reason.
+
+**Checked.** The sampling temperature is T = 0.1, which is low, and low-
+temperature sampling converges. `unique_sequences` already existed to drop
+duplicates, with the stated reason that carrying them forward would inflate
+the funnel counts. The consequence it did not state: a backbone that returns
+eight samples carrying two distinct sequences has had **two** attempts at G1,
+not eight, so the gate is more stringent on some backbones than others, and
+the funnel row "passed G1" means a different test per backbone.
+
+**Changed.** `effective_attempts` makes the number a reportable quantity
+rather than an assumption, and the sampling docstring says what the figure
+means. The registered count of eight is unchanged: it is the right
+specification, and what was missing is the measurement of what it delivered.
+
+**Why this is worth a line.** It is the smallest of the premortem findings and
+the clearest example of its shape. Nothing is broken, no number is wrong, and
+a quantity the funnel's interpretation depends on was simply never recorded —
+because the code that handled it correctly made it look handled.
