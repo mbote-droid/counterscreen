@@ -68,4 +68,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # A notebook renders `raise SystemExit` as a red traceback, which makes a
+    # verdict look like a crash. Pasted into a cell this prints and stops; run
+    # as a script it still exits with the status.
+    _status = main()
+    if _status and "IPython" not in sys.modules:
+        raise SystemExit(_status)

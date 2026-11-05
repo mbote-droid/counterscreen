@@ -140,14 +140,44 @@ right by arithmetic, not by intent.
 **Regression test.** `test_the_affinity_control_lands_at_rank_ten`, whose
 docstring now records why a derived rank was wrong.
 
-### ISSUE-013 · Kaggle runs Python 3.13; the project pins 3.12 · 3 Nov · **OPEN**
+### ISSUE-013 · Kaggle runs Python 3.13; the project pins 3.12 · 3 Nov · **DIAGNOSED 5 Nov**
 
 **Symptom.** Kaggle's GPU image reports Python 3.13.16.
 **Diagnosis.** `requires-python = ">=3.12,<3.13"` means `counterscreen` will
 not install there as-is. Separately, Boltz and Protenix may lack 3.13 wheels.
-**Fix.** Undecided — widen the pin, run a 3.12 environment on Kaggle, or keep
-the package off Kaggle and run models standalone. Deliberately not decided
-speculatively: the install attempt is still running.
+
+**Measured, 5 Nov.** The speculation was right in effect and wrong in
+mechanism, and the mechanism matters because it names the fix. A full
+`pip install --dry-run boltz` on Python 3.13.18:
+
+| Step | What happens |
+|---|---|
+| `boltz 2.0.3` | resolves fine — it is a pure-Python `py3-none-any` wheel |
+| `torch>=2.2` | `cp313` wheel exists; fine |
+| `rdkit>=2024.3.2` | `cp313` wheel exists; fine |
+| **`numpy<2.0,>=1.26`** | **no `cp313` wheel exists.** numpy added 3.13 wheels in 2.1, and boltz pins below 2.0, so pip downloads `numpy-1.26.4.tar.gz` (15.8 MB) to build from source |
+| **`scipy`** | pinned below 2.0 by the same constraint, so it resolves to **1.13.1**, which also predates 3.13 wheels and builds from source via meson |
+| build | `ERROR: Unknown compiler(s): gfortran, flang, ifort, ...` → `metadata-generation-failed` |
+
+**So Boltz itself is not the problem: its `numpy<2.0` pin is.** On Python 3.13
+that one constraint forces source builds of numpy *and* scipy. Where a Fortran
+compiler is missing the install fails outright; where one is present it
+succeeds only after tens of minutes of compilation. Either way the cell looks
+like the one in ISSUE-027: long, silent, and not obviously progressing.
+
+**Confirmed on Kaggle, 5 Nov.** Cell 0 reports Python 3.13.18 with
+**numpy 2.1.3** and **scipy 1.16.3** already installed — both *above* boltz's
+`numpy<2.0` pin. So the install does not merely fail to find a wheel: it
+first has to **downgrade** a working numpy to 1.26.4, for which no 3.13 wheel
+exists, and build it from source. The image is further from boltz's
+constraints than a bare interpreter would be.
+
+**Fix.** Pin the notebook to an environment with **Python 3.12 or earlier**,
+where numpy 1.26.4 and scipy 1.13.x both have binary wheels and nothing
+compiles. That also removes the `requires-python` conflict for
+`counterscreen` itself, so the choice that looked like three options is one.
+Widening the project pin to 3.13 would *not* have helped: the obstruction is
+in Boltz's dependency range, not in ours.
 **Regression test.** `test_python_pin_is_consistent.py` will fail the moment
 the pin is widened inconsistently.
 
@@ -436,3 +466,19 @@ and asserts each compiles, uses no notebook-only syntax, has a `main()` and a
 `__main__` guard -- without the guard, pasting the file defines a function and
 does nothing, the same silent no-op as the string form -- and carries a
 docstring saying what it answers.
+
+### ISSUE-030 · A cell's verdict rendered as a crash · 5 Nov
+
+**Symptom.** Cell 0 printed its diagnosis correctly and then showed a red
+`SystemExit: 1` traceback box, with IPython adding "To exit: use 'exit',
+'quit', or Ctrl-D."
+**Diagnosis.** The cells end in `raise SystemExit(main())`, which is right for
+a script and wrong in a notebook: a non-zero status is how the cell *reports a
+verdict*, and rendering it as an exception makes a working cell look broken.
+The operator cannot tell a refusal from a failure, which is the same confusion
+ISSUE-027 and the cell-1 pip message were both about.
+**Fix.** The guard raises only when IPython is absent, so a paste prints its
+verdict and stops while a script keeps its exit code.
+**Regression test.** Covered by the existing guard assertion in
+`tests/contract/test_kaggle_cells.py`; the notebook path is exercised by
+running a cell with `IPython` injected into `sys.modules`.

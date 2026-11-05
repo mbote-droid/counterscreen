@@ -16,6 +16,11 @@ import sys
 TIMEOUT_SECONDS = 180
 PACKAGE = "boltz"
 
+#: Lines that mean "no wheel for this interpreter, so pip is compiling".
+#: Measured on Python 3.13: boltz pins numpy<2.0, numpy has no 3.13 wheel
+#: below 2.1, and scipy follows it down. `BUILD_JOURNAL.md` ISSUE-013.
+SOURCE_BUILD_MARKERS = (".tar.gz", "Preparing metadata", "meson", "Building wheel")
+
 
 def main() -> int:
     # "Could not run the resolver" and "the resolver said no" are different
@@ -46,6 +51,21 @@ def main() -> int:
     output = (result.stdout + result.stderr).strip().splitlines()
     for line in output[-25:]:
         print(line)
+
+    compiling = sorted(
+        {
+            line.strip()
+            for line in output
+            if any(marker in line for marker in SOURCE_BUILD_MARKERS)
+        }
+    )
+    if compiling:
+        print("\nSOURCE BUILDS — pip has no wheel for this interpreter:")
+        for line in compiling[:8]:
+            print(" ", line)
+        print("On Python 3.13 this is numpy and scipy, pulled below their 3.13")
+        print("wheels by boltz's numpy<2.0 pin. Pin the notebook to Python 3.12")
+        print("or earlier rather than waiting. BUILD_JOURNAL.md ISSUE-013.")
     print("\nexit code", result.returncode)
     if result.returncode != 0:
         print(f"pip exited {result.returncode}. If the lines above name a version")
@@ -56,4 +76,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # A notebook renders `raise SystemExit` as a red traceback, which makes a
+    # verdict look like a crash. Pasted into a cell this prints and stops; run
+    # as a script it still exits with the status.
+    _status = main()
+    if _status and "IPython" not in sys.modules:
+        raise SystemExit(_status)

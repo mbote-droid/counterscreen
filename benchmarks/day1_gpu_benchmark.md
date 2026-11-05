@@ -27,16 +27,22 @@ digest is recorded at run time into the provenance manifest instead.
 |---|---|
 | GPU, memory, driver | `2 × Tesla T4, 15360 MiB each, driver 580.178.04` |
 | Container image digest | `gcr.io/kaggle-gpu-images/python@sha256:de153e6d3038…eea01` |
-| Python | `3.13.16` |
+| Python | `3.13.18` (measured 5 Nov; 3.13.16 on 3 Nov) |
+| torch | `2.11.0+cpu` with the accelerator off; the CUDA build returns with it on |
+| numpy | `2.1.3` — **above boltz's `numpy<2.0` pin**, so installing boltz here downgrades it to 1.26.4, which has no 3.13 wheel |
+| scipy | `1.16.3` — follows numpy down for the same reason |
 | CPU cores | `4` |
 | Date run | `TO RECORD` |
 
 > Jobs do not span both T4s. Budget against **one 15 GB card**.
 >
-> The image runs Python 3.13 while this project pins 3.12 (`uv.lock` resolves
-> for `==3.12.*`). Unresolved: widen the pin, run a 3.12 environment on
-> Kaggle, or keep the package off Kaggle and drive the models standalone.
-> Recorded as `BUILD_JOURNAL.md` ISSUE-013.
+> **Use an environment with Python 3.12 or earlier.** Measured on 5 Nov:
+> Boltz pins `numpy<2.0`, numpy gained 3.13 wheels only at 2.1, and scipy is
+> dragged below 3.13 wheel availability by the same constraint — so on 3.13
+> pip builds numpy and scipy from source, which fails without a Fortran
+> compiler and takes tens of minutes with one. `BUILD_JOURNAL.md` ISSUE-013
+> carries the full resolve. This also removes the `requires-python` conflict
+> for `counterscreen` itself.
 
 ## Install verification
 
