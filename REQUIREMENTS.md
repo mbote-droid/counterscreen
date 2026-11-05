@@ -31,6 +31,11 @@ A requirement with no verification method is not a requirement; it is a wish.
 | G-09 | A design shall not be folded unless G0 passed it | adapter never reached for unstamped design | **verified** |
 | G-10 | G2's operating point shall not be settable from configuration | unknown-key error on `g2_confidence` | **verified** |
 | G-11 | Every funnel table in prose shall list the gates in the order they run | `tests/contract/test_funnel_documents.py` | **verified** — both tables were out of order before A10 (`BUILD_JOURNAL.md` ISSUE-018) |
+| G-12 | A disulfide shall not be reported as a clash | 2.2 Å cutoff, above every measured S–S bond, yields no clash | **verified** — `FINDINGS.md` F-11 |
+| G-13 | A gap in residue numbering shall not be counted as a chain break, and a real jump shall still be | both directions, plus 7OW4's four unmodelled loops | **verified** — `FINDINGS.md` F-12 |
+| G-14 | Dihedrals shall be computed only between bonded residues | the cis-peptide spanning 7OW4's gap is gone | **verified** — `FINDINGS.md` F-12 |
+| G-15 | An untested Ramachandran check shall not pass | two-residue structure fails with an "untested" reason | **verified** — `BUILD_JOURNAL.md` ISSUE-023 |
+| G-16 | Clash detection shall be linear in memory | KD-tree cross-checked against every pair | **verified** — `BUILD_JOURNAL.md` ISSUE-021 |
 
 ## T · Targets
 
@@ -43,6 +48,11 @@ A requirement with no verification method is not a requirement; it is a wish.
 | T-05 | Truncation boundaries shall be recorded in configuration | script takes config; no constants | **verified** |
 | T-06 | Truncation shall not move the peptide | CA RMSD 0.000 Å against the full complex | **verified** |
 | T-07 | The platform construct shall drop β2m and the α3 domain | chains {A, C}, ≤200 residues | **verified** |
+| T-08 | Two atoms shall not claim one name in one residue | duplicate atom refused at construction | **verified** — `FINDINGS.md` F-13 |
+| T-09 | Alternate conformers shall be resolved by a stated rule and reported | `alternate_conformers` census over all five sources | **verified** — `FINDINGS.md` F-13 |
+| T-10 | Insertion codes shall be refused, not ignored | reader raises rather than collapsing two residues | **verified** — `FINDINGS.md` F-13 |
+| T-11 | An unmeasurable solvent-accessible area shall not read as zero | unrecognised element and non-finite area both raise | **verified** — `FINDINGS.md` F-14 |
+| T-12 | The L-chirality sign shall be confirmed against experimental coordinates | 1,409 residues, all negative, mean −122.1° | **verified** — `FINDINGS.md` F-15 |
 
 ## S · Scoring and ranking
 
@@ -119,9 +129,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 58 |
+| Verified | 68 |
 | Pending | 4 |
-| **Total** | **62** |
+| **Total** | **72** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

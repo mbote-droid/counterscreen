@@ -101,6 +101,19 @@ class Structure:
             if key not in index:
                 index[key] = {}
                 order.append((chain, number, residue))
+            if atom in index[key]:
+                # Two atoms claiming one name in one residue. The assignment
+                # would have won silently and kept whichever came last in the
+                # file: an alternate conformer, or two residues collided by a
+                # dropped insertion code. `FINDINGS.md` F-13 measured what that
+                # chose -- the B conformer of a 0.5/0.5 pair, 6.1 A away at the
+                # contacting atom. Refused here so no caller can inherit it.
+                msg = (
+                    f"atom {atom!r} appears twice in residue {chain}{number}. "
+                    "Alternate conformers must be resolved and insertion codes "
+                    "handled before building a structure, not silently collapsed"
+                )
+                raise ValueError(msg)
             index[key][atom] = row
         residues = tuple(
             Residue(name=residue, chain=chain, number=number, atoms=index[(chain, number)])

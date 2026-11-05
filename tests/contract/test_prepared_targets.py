@@ -148,3 +148,129 @@ def test_the_gate_still_rejects_a_disallowed_conformation() -> None:
     """The correction must not have loosened the gate into uselessness."""
     assert is_ramachandran_outlier("ALA", 0.0, 0.0)
     assert is_ramachandran_outlier("GLY", 0.0, 0.0)
+
+
+# --- G0 against a deposited structure with an unmodelled loop ---------------
+
+
+def test_the_asymmetric_unit_with_an_unmodelled_loop_passes() -> None:
+    """7OW4, the sixth deposited structure, and the one F-1 is about.
+
+    All four peptide copies are numbered 4 then 7: positions 5 and 6 were
+    never modelled. G0 read each jump as a 7.0-7.7 A chain break and, because
+    the omega either side of the gap was computed from non-bonded atoms, as a
+    cis-peptide too. Six false defects in a structure with none
+    (`FINDINGS.md` F-12).
+    """
+    source = Path(__file__).resolve().parents[2] / "structures" / "7OW4.cif"
+    if not source.exists():
+        pytest.skip(f"{source} not available")
+    from counterscreen.targets.prepare import read_cif  # noqa: PLC0415
+
+    report = check_geometry(read_cif(source))
+    assert report.passed, report.reasons()
+    assert len(report.chain_gaps) == 4
+    assert {gap.after_residue for gap in report.chain_gaps} == {4}
+    assert {gap.next_residue for gap in report.chain_gaps} == {7}
+    assert report.chain_breaks == ()
+    assert report.cis_peptides == ()
+
+
+def test_a_numbering_gap_is_not_a_chain_break_but_a_real_jump_is() -> None:
+    """The distinction must not become a loophole.
+
+    Consecutive numbering with a long CA-CA distance is still a break, which
+    is the only case a generated backbone can produce: designs are numbered
+    consecutively by construction.
+    """
+    coords = [[float(i) * 3.8, 0.0, 0.0] for i in range(4)]
+    coords[3] = [40.0, 0.0, 0.0]  # a 29 A jump
+
+    gapped = Structure.from_atoms(coords, ["CA"] * 4, ["ALA"] * 4, [1, 2, 3, 20], ["A"] * 4)
+    report = check_geometry(gapped)
+    assert report.chain_breaks == ()
+    assert len(report.chain_gaps) == 1
+
+    broken = Structure.from_atoms(coords, ["CA"] * 4, ["ALA"] * 4, [1, 2, 3, 4], ["A"] * 4)
+    assert len(check_geometry(broken).chain_breaks) == 1
+
+
+def test_a_disulfide_is_not_reported_as_a_clash() -> None:
+    """The margin was 0.02 A (`FINDINGS.md` F-11).
+
+    Every disulfide in the prepared targets measures 2.02-2.08 A against a
+    2.0 A clash cutoff, and PROTOCOL.md section 3.1 separately asserts they
+    must be present. Tested above the bond length so the exclusion is what is
+    being checked, not the cutoff's luck.
+    """
+    import dataclasses  # noqa: PLC0415
+
+    from counterscreen.core.config import GateConfig  # noqa: PLC0415
+
+    structure = load("T_plus")
+    bonds = find_disulfides(structure, DISULFIDE_MAX_ANGSTROM)
+    assert len(bonds) >= MIN_PMHC_DISULFIDES
+    assert max(bond.distance_angstrom for bond in bonds) < 2.2
+
+    above_the_bond = dataclasses.replace(GateConfig(), g0_clash_distance_angstrom=2.2)
+    report = check_geometry(structure, above_the_bond)
+    assert report.clashes == (), [
+        (structure.atom_names[c.first_atom], structure.atom_names[c.second_atom])
+        for c in report.clashes
+    ]
+    assert report.passed, report.reasons()
+
+
+def test_the_neighbour_search_finds_the_same_clashes_as_comparing_every_pair() -> None:
+    """The KD-tree replaced an (n, n, 3) array; it must not change the answer."""
+    import itertools  # noqa: PLC0415
+
+    import numpy as np  # noqa: PLC0415
+
+    from counterscreen.geometry.validity import _clashes  # noqa: PLC0415
+
+    rng = np.random.default_rng(20261105)
+    coords = rng.uniform(0.0, 8.0, size=(60, 3))
+    structure = Structure.from_atoms(
+        coords,
+        ["CB"] * 60,
+        ["ALA"] * 60,
+        list(range(1, 61)),
+        ["A"] * 30 + ["B"] * 30,
+    )
+    limit = 2.0
+    found = {(c.first_atom, c.second_atom) for c in _clashes(structure, limit)}
+
+    expected = set()
+    for i, j in itertools.combinations(range(60), 2):
+        if float(np.linalg.norm(coords[i] - coords[j])) >= limit:
+            continue
+        if structure.chain_ids[i] == structure.chain_ids[j] and abs(i - j) <= 1:
+            continue
+        expected.add((i, j))
+    assert found == expected
+    assert found  # the fixture must actually contain clashes
+
+
+def test_an_untested_ramachandran_check_does_not_pass() -> None:
+    """Zero outliers out of zero evaluated residues is not a clean structure."""
+    two = Structure.from_atoms(
+        [[0.0, 0.0, 0.0], [3.8, 0.0, 0.0]], ["CA"] * 2, ["ALA"] * 2, [1, 2], ["A"] * 2
+    )
+    report = check_geometry(two)
+    assert report.ramachandran_untested
+    assert report.ramachandran_outlier_fraction == 0.0
+    assert not report.passed
+    assert any("untested" in reason for reason in report.reasons())
+
+
+def test_each_alignment_bound_applies_on_its_own() -> None:
+    """`BUILD_JOURNAL.md` ISSUE-022: `first` alone used to fit the whole chain."""
+    from counterscreen.geometry.align import superpose_on  # noqa: PLC0415
+
+    coords = [[float(i) * 3.8, 0.0, 0.0] for i in range(12)]
+    chain = Structure.from_atoms(coords, ["CA"] * 12, ["ALA"] * 12, list(range(1, 13)), ["A"] * 12)
+    assert superpose_on(chain, chain, "A").paired == 12
+    assert superpose_on(chain, chain, "A", first=10).paired == 3
+    assert superpose_on(chain, chain, "A", last=3).paired == 3
+    assert superpose_on(chain, chain, "A", first=10, last=12).paired == 3

@@ -35,11 +35,21 @@ class Alignment:
 def _alpha_carbons(
     structure: Structure, chain: str, first: int | None, last: int | None
 ) -> dict[int, NDArray[np.float64]]:
+    """CA atoms of one chain, optionally restricted to a residue range.
+
+    Each bound is applied independently. The earlier form read
+    ``not (first <= n <= last if last else True)``, which evaluates the
+    conditional first, so ``first`` alone was discarded and the whole chain was
+    fitted -- an RMSD over an atom set nobody asked for
+    (`BUILD_JOURNAL.md` ISSUE-022).
+    """
     found: dict[int, NDArray[np.float64]] = {}
     for residue in structure.residues:
         if residue.chain != chain or not residue.has("CA"):
             continue
-        if first is not None and not (first <= residue.number <= last if last else True):
+        if first is not None and residue.number < first:
+            continue
+        if last is not None and residue.number > last:
             continue
         found[residue.number] = structure.xyz(residue, "CA")
     return found

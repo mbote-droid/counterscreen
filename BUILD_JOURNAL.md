@@ -258,3 +258,49 @@ table, which also listed only part of the file, now accounts for all ten.
 `F-n` entry has an evidence-class row, that the table names no finding that
 does not exist, that numbering is unique and ordered, and that no row leaves
 the "does not license" column empty.
+
+### ISSUE-021 · The cheapest gate was the most memory-hungry step · 5 Nov
+
+**Symptom.** Measured while auditing G0 for the premortem. `check_geometry`
+on a 390-residue complex peaked at **632 MB** and took 4.1 s; on the
+four-copy asymmetric unit of 7OW4 it peaked at **10.1 GB** and took 61 s.
+**Diagnosis.** `_clashes` built the full pairwise distance matrix via
+`coords[:, None, :] - coords[None, :, :]`, an (n, n, 3) float64 array: 230 MB
+of intermediate at 3,100 atoms and 3.8 GB at 12,500. G0 is the gate
+`PROTOCOL.md` §8 puts first *because it is cheap*, and it would have been the
+step most likely to exhaust a 16 GB Kaggle box. At campaign scale the time
+mattered too: 4 s × a few hundred designs × three targets × two seeds is hours
+of CPU attributed to the cheap gate.
+**Fix.** `scipy.spatial.cKDTree.query_pairs`, which is linear in memory.
+T+ went 632 MB → **16.4 MB** and 7OW4 10,089 MB → **3.0 MB**, 61 s → 3.7 s.
+**Regression test.** `test_the_neighbour_search_finds_the_same_clashes_as_comparing_every_pair`
+cross-checks the KD-tree result against brute force over every pair on a
+random 60-atom fixture that genuinely contains clashes, so the optimisation
+cannot have changed the answer.
+
+### ISSUE-022 · An alignment range bound was silently discarded · 5 Nov
+
+**Symptom.** `superpose_on(mobile, reference, "A", first=10)` on a 12-residue
+chain fitted all 12 CA atoms instead of 3.
+**Diagnosis.** `not (first <= n <= last if last else True)` parses as
+`not (… if last else True)`, so with `last` unset the conditional returns
+`True`, the negation is `False`, and every residue is kept — the `first` bound
+had no effect. `last=0` was also treated as absent, being falsy.
+**Fix.** Each bound applied independently against `None`.
+**Not a wrong result anywhere.** The only call site passes both bounds, so no
+recorded number changes. The hotspot schemes re-derive identical.
+**Regression test.** `test_each_alignment_bound_applies_on_its_own`.
+
+### ISSUE-023 · An untested Ramachandran check reported as a pass · 5 Nov
+
+**Symptom.** A two-residue structure, which has no computable φ/ψ at all,
+passed G0's Ramachandran criterion.
+**Diagnosis.** `ramachandran_outlier_fraction` returns 0.0 when
+`ramachandran_evaluated == 0`, and `passed` compares that to the 1% threshold.
+Zero outliers out of zero residues is absence of evidence, and `FINDINGS.md`
+F-10 is about what happens when that is read as evidence of absence — the same
+shape as `one_to_one_adequate` returning `True` when the runs test could not
+run.
+**Fix.** `ramachandran_untested` is a separate property, it fails the gate,
+and `reasons()` says so rather than reporting an outlier percentage.
+**Regression test.** `test_an_untested_ramachandran_check_does_not_pass`.

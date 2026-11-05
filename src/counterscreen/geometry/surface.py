@@ -21,6 +21,29 @@ from counterscreen.geometry.structure import Residue, Structure
 #: Atoms treated as apolar for patch detection: carbon and sulfur.
 APOLAR_ELEMENTS = frozenset({"C", "S"})
 
+#: Elements a protein heavy-atom table may contain. Anything else means the
+#: name was not parsed as intended, and an unrecognised element silently
+#: becomes zero area under `biotite`'s single-radius set, which reads exactly
+#: like "buried" (`FINDINGS.md` F-14). Refused rather than coerced.
+KNOWN_ELEMENTS = frozenset({"C", "N", "O", "S", "H", "P"})
+
+
+class SurfaceError(ValueError):
+    """Raised when a structure's atoms cannot be assigned surface area."""
+
+
+def element_of(atom_name: str) -> str:
+    """Element symbol for a PDB atom name.
+
+    Leading digits belong to hydrogen names such as ``1HB``, so they are
+    stripped before the first character is read.
+    """
+    stripped = atom_name.strip().lstrip("0123456789")
+    if not stripped:
+        msg = f"atom name {atom_name!r} carries no element"
+        raise SurfaceError(msg)
+    return stripped[0].upper()
+
 
 def _to_atom_array(structure: Structure) -> Any:  # noqa: ANN401
     # biotite ships no stubs, so AtomArray is Any; the annotation keeps mypy
@@ -33,7 +56,16 @@ def _to_atom_array(structure: Structure) -> Any:  # noqa: ANN401
     array.res_name = list(structure.residue_names)
     array.res_id = list(structure.residue_numbers)
     array.chain_id = list(structure.chain_ids)
-    array.element = [name[0] for name in structure.atom_names]
+    elements = [element_of(name) for name in structure.atom_names]
+    unknown = sorted(set(elements) - KNOWN_ELEMENTS)
+    if unknown:
+        msg = (
+            f"atom names gave unrecognised elements {unknown}; a radius lookup would "
+            "return no value and the area would read as zero, which is indistinguishable "
+            "from buried"
+        )
+        raise SurfaceError(msg)
+    array.element = elements
     return array
 
 
@@ -41,8 +73,22 @@ def atom_sasa(structure: Structure, probe_radius: float = 1.4) -> NDArray[np.flo
     """Per-atom solvent-accessible surface area, in square angstrom."""
     from biotite.structure import sasa  # noqa: PLC0415
 
-    values = sasa(_to_atom_array(structure), probe_radius=probe_radius, vdw_radii="Single")
-    return np.nan_to_num(np.asarray(values, dtype=np.float64))
+    values = np.asarray(
+        sasa(_to_atom_array(structure), probe_radius=probe_radius, vdw_radii="Single"),
+        dtype=np.float64,
+    )
+    # biotite returns NaN for an atom it has no radius for. Replacing it with
+    # zero -- which this did -- turns "not measured" into "fully buried", and
+    # the measurement that mattered most here was an exposure of exactly zero
+    # (`FINDINGS.md` F-5, F-14). Hydrogens legitimately have no area under the
+    # single-radius set and are excluded instead of patched.
+    heavy = np.array([element_of(name) != "H" for name in structure.atom_names])
+    missing = np.flatnonzero(~np.isfinite(values) & heavy)
+    if missing.size:
+        names = sorted({structure.atom_names[int(row)] for row in missing})
+        msg = f"no solvent-accessible area returned for heavy atoms {names}"
+        raise SurfaceError(msg)
+    return np.where(np.isfinite(values), values, 0.0)
 
 
 def residue_sasa(structure: Structure, probe_radius: float = 1.4) -> dict[tuple[str, int], float]:

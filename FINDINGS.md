@@ -46,6 +46,11 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-8** | Direct power measurement on a synthetic two-site curve | That the registered 1:1 adequacy test has no power at the series length a real SPR experiment supplies, so it belongs on kinetic residuals | Nothing about whether the returned fits *are* 1:1 adequate — that needs the sensorgrams. The power figures are for one two-site curve, not a general power curve |
 | **F-9** | Negative control on five deposited structures | That the gate as first written rejected experimentally determined coordinates, and that two implementation defects caused it | Nothing about the 1% threshold, which never moved. It does not license calling the gate validated: five structures of one complex class is not a validation set |
 | **F-10** | Complete audit of the repository's hand-maintained document facts, n = 5 | That numeric provenance covering a document's *values* leaves its claims *about itself* unguarded, and that in this project 4 of 5 such facts were wrong | Nothing about other projects' tooling. Only hand-maintained facts were audited, so it does not license "these were the only unguarded claims" |
+| **F-11** | Direct measurement of every disulfide in the prepared targets, n = 13 | That the clash cutoff and the disulfide assertion can contradict each other, and that whether a structure passes depends on refinement rather than geometry | Nothing about how often this fires in deposited structures generally — 13 bonds from two crystals of one complex. It does not license a claim that the 2.0 Å cutoff is otherwise correct |
+| **F-12** | Negative control on a sixth deposited structure | That G0 counted an unmodelled region as six defects, and that F-9's calibration was incomplete rather than wrong | Nothing about generated backbones, where numbering is consecutive and the two cases cannot overlap. Six of six structures passing is still six, from one deposition group |
+| **F-13** | Complete census of alternate conformers in the five source files | That conformer selection was being made by file order at half occupancy, and that Gln70 — an M1 target under A8 — is one of them | Nothing about which conformer is right; at 0.5/0.5 the data does not say. It is one apo structure, so it does not license a claim that Gln70 is mobile when a receptor is bound |
+| **F-14** | Re-measurement with the coercion removed | That F-5's zero is a measured zero, and that the path it came through could not have distinguished one | Nothing further about Asp6. The audit covers this project's SASA path only |
+| **F-15** | Direct measurement over 1,409 residues of five experimental structures | That the improper-dihedral sign convention for L-amino acids is as assumed, so the chirality check is correctly oriented | Nothing about the Ramachandran criterion, which remains the coarse approximation F-9 left it. Confirming a sign is not validating the gate |
 
 **Ranked by what a reader should care about: F-6, then F-1, then F-8, then the
 rest.** F-6 proposes a mechanism with a testable consequence — that a binder
@@ -582,3 +587,184 @@ class of fact as handled, and the facts just outside that class inherit the
 confidence without inheriting the guard. Asking what a passing check does
 **not** cover is a different question from asking whether it passes, and only
 the first one found these.
+
+---
+
+## F-11 · G0's clash cutoff sits 0.02 Å below a real disulfide
+
+**Believed.** G0's clash check and the disulfide assertion of `PROTOCOL.md`
+§3.1 were treated as independent: one rejects atoms too close to be physical,
+the other confirms the HLA α2 and β2m disulfides survived preparation.
+
+**Checked.** Every disulfide in the five prepared targets, measured:
+
+| Target | SG–SG distances (Å) |
+|---|---|
+| T+ | 2.066, 2.049, 2.024 |
+| D1 | 2.079, 2.020, 2.037 |
+| D2 | 2.066, 2.049, 2.024 |
+
+The registered clash cutoff is **2.0 Å**. The closest disulfide in the project
+is **2.020 Å**. Raising the cutoff to 2.2 Å — still well inside the range a
+clash check is meant to cover — makes G0 report exactly three clashes in T+,
+and all three are SG–SG pairs: the structure's own disulfides.
+
+**Why the margin is not reassuring.** A disulfide bond is ~2.05 Å and refined
+values below 2.0 Å are ordinary, so whether a structure passes depends on
+refinement rather than on geometry. Worse, the two gates **push designs into
+this corner**: G8 requires no free cysteine, so any submitted design
+containing cysteine carries a disulfide, and G0 — which runs second under
+amendment A10 — would then judge a bond at ideal 2.03 Å against a 2.0 Å
+cutoff. A design could fail G0 for carrying the feature G8 requires.
+
+**Changed.** `_clashes` takes the bonded pairs it must not judge, and
+`check_geometry` passes it the disulfides it has already found. The cutoff is
+unchanged at 2.0 Å. A test asserts no clash at a 2.2 Å cutoff, so what is
+pinned is the exclusion rather than the cutoff's luck.
+
+**The general point.** The clash rule already excluded same-chain adjacent
+residues as "bonded or one-three neighbours", so the *concept* of exempting a
+bond was present and one bond type was missed — the only one that is not
+backbone-adjacent. A rule stated over a proxy for bonding (sequence
+adjacency) silently omits every bond the proxy cannot see.
+
+---
+
+## F-12 · An unmodelled loop was read as a chain break, six times over
+
+**Believed.** F-9 corrected G0's Ramachandran regions, after which all five
+prepared targets passed, and the gate was taken to be calibrated against
+experimental reality.
+
+**Checked.** 7OW4 — the sixth deposited structure, and the one F-1 is about —
+still failed, and for a different reason. All four peptide copies are numbered
+**4 then 7**: positions 5 and 6 were never modelled, which is precisely F-1's
+missing density at the discriminating residue. G0 measured 7.0–7.7 Å across
+each gap and reported four chain breaks. Because φ, ψ and ω were taken from
+list-adjacent rather than bonded residues, the ω spanning one gap also came
+back as a cis-peptide. **Six false defects in a structure that has none.**
+
+**Changed.** A chain break is now consecutive *numbering* with a non-bonded
+distance — the backbone claims to continue and the coordinates say otherwise,
+which is the defect `PREREGISTRATION.md` §3 registers. A jump in numbering is
+a `ChainGap`: recorded, reported, and not judged, because the chain never
+claimed to continue. Dihedrals are computed only between numerically
+consecutive residues. 7OW4 now passes with four gaps and no defects, so the
+count against experimental reality is **6 of 6**.
+
+**Not a loophole.** Generated backbones are numbered consecutively by
+construction, so for a design the two cases cannot overlap: a 7 Å jump with
+consecutive numbering is still a break and still fails. A test pins both
+directions.
+
+**What this says about F-9.** F-9 fixed the two artefacts it found and
+declared the gate calibrated on the evidence then available — five structures,
+none with an unmodelled region. The conclusion was sound and incomplete, and
+the incompleteness was invisible because the test set did not contain the case.
+A gate validated on five structures of one preparation pipeline is validated
+against that pipeline, not against crystallography.
+
+---
+
+## F-13 · Alternate conformers were resolved by file order, and one of them is Gln70
+
+**Believed.** The mmCIF reader dropped HETATM records and was otherwise taken
+to read what the depositors modelled.
+
+**Checked.** It ignored `label_alt_id`. Residues indexed by (chain, number,
+atom name) collided, and the assignment kept whichever row came **last** —
+the B conformer. Counting what was there:
+
+| Structure | Residues with alternates | Largest A↔B separation |
+|---|---|---|
+| 7OW3, 7OW6, 9UV8 | 0 | — |
+| 7OW5 | 1 — Arg111 of TCR chain E | 9.70 Å at NH2 |
+| 7OW4 | 5 — **Gln70 of HLA chain A**, Glu212, His13 ×2, Val27 | 6.09 Å at Gln70 NE2 |
+
+Each is modelled at **0.5 occupancy**, so neither conformer is the right one
+and the file order was deciding.
+
+**Gln70 is the one that matters.** `PROTOCOL.md` §4, as redefined by amendment
+A8, names it: M1 now targets the solvent-accessible face of OD1 **or
+displacement of the Gln70 contacts to OD2**. The residue one of three
+mechanism arms is aimed at is modelled in two half-occupied conformations
+6.1 Å apart at the contacting atom, in the apo structure. That bears on M1's
+feasibility independently of F-5, and in the same direction: a side chain that
+cannot be placed at half occupancy is not a fixed handle to design against. It
+also sharpens F-1 — in 7OW4 the discriminating residue has no density *and*
+one of its two coordinating partners has two positions.
+
+**Changed, and what it did not change.** The reader keeps one conformer by a
+stated rule, `alternate_conformers()` reports what was there, and
+`Structure.from_atoms` now **refuses** a duplicate atom name in a residue, so
+the silent path is gone rather than merely corrected; insertion codes are
+refused for the same reason instead of collapsing two residues into one.
+
+Nothing already recorded moves. T+ comes from 7OW6, which has no alternates,
+and 7OW5's single one is in a TCR chain that truncation discards. Verified
+rather than argued: the five prepared targets regenerate **byte-identical**,
+and the hotspot schemes re-derive identical.
+
+---
+
+## F-14 · The zero that would have looked exactly like a measurement
+
+**Believed.** F-5's headline numbers — OD1 exposing 6.4 Å², OD2 exposing
+**zero** — came from the SASA module and were treated as measurements.
+
+**Checked.** `atom_sasa` ended in `np.nan_to_num`. `biotite` returns NaN for
+an atom whose element it has no radius for, and the element was inferred from
+the **first character of the atom name**, which is wrong for every two-letter
+element. So an unparsed element produced NaN, and NaN was converted to
+**0.0 Å²** — reported as fully buried, indistinguishable from a real zero.
+The one number in F-5 most open to attack is an exposure of exactly zero.
+
+**It was real.** Re-measured with the coercion removed: OD1 6.43 Å², OD2
+**0.00 Å²**, Asp6 total 19.0 Å². OD2 is an oxygen, its element parsed
+correctly, and a finite zero was returned. F-5 stands — but it stood on a code
+path that could not have told the difference.
+
+**Changed.** Elements are parsed after stripping the leading digits of
+hydrogen names, checked against the set a protein heavy-atom table may
+contain, and anything else raises. A non-finite area for a heavy atom raises
+rather than becoming zero; hydrogens, which legitimately have no area under
+the single-radius set, are excluded instead of patched.
+
+**The general point, which is F-10 again in a different costume.** A silent
+coercion is most dangerous where the coerced value is a *plausible answer*.
+`nan_to_num` is harmless on a quantity whose zero is impossible and invisible
+on one whose zero is the finding.
+
+---
+
+## F-15 · The chirality convention, confirmed — three days after it could be
+
+**Believed.** `L_CHIRALITY_SIGN = -1.0` was documented as resting on
+convention: a test proved the *relative* claim — that mirroring a structure
+negates every improper dihedral — while the *absolute* claim, that negative
+means L, was recorded as "not yet checked against an experimental structure",
+with the check "owed as soon as real coordinates are available".
+
+**Checked.** The coordinates had been available since 2 November. The
+N–CA–C–CB improper over every side-chain-bearing residue of the five prepared
+targets:
+
+| | Value |
+|---|---|
+| Residues measured | 1,409 |
+| Mean | −122.1° |
+| Range | −129.1° to −111.2° |
+| Positive (i.e. D) | **0** |
+
+The conventionally quoted value for an L-amino acid is about −122°. The sign
+is confirmed, the magnitude matches, and the ±9° spread shows the measurement
+is stable across five structures.
+
+**What was actually wrong here.** Not the constant — the record. F-9 ran the
+whole gate against these structures and they passed, which *required* the sign
+to be right; the check had already happened as a side effect and nobody
+noticed, so a verified fact stayed on the books as owed for three days. An
+owed verification that is silently discharged by other work is worse than one
+still outstanding: it makes the register of what is unverified wrong in the
+direction of over-caution, and a register that over-reports doubt gets
+discounted.

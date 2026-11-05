@@ -84,6 +84,23 @@ class ChainBreak:
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
+class ChainGap:
+    """Consecutive *modelled* residues whose numbering is not consecutive.
+
+    An unmodelled loop, not a defect. `FINDINGS.md` F-12 records what treating
+    one as a chain break did: all four peptide copies of 7OW4 are numbered
+    4 then 7 -- positions 5 and 6 were never modelled, which is F-1 -- and G0
+    reported a 7.0-7.7 A "chain break" in each, failing a deposited structure
+    for the absence of density rather than for any geometry.
+    """
+
+    chain: str
+    after_residue: int
+    next_residue: int
+    distance_angstrom: float
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
 class Clash:
     """Two heavy atoms closer than physically possible."""
 
@@ -125,6 +142,7 @@ class GeometryReport:
     """Everything G0 measured, and the verdict that follows from it."""
 
     chain_breaks: tuple[ChainBreak, ...]
+    chain_gaps: tuple[ChainGap, ...]
     clashes: tuple[Clash, ...]
     ramachandran_outliers: tuple[int, ...]
     ramachandran_evaluated: int
@@ -136,10 +154,27 @@ class GeometryReport:
 
     @property
     def ramachandran_outlier_fraction(self) -> float:
-        """Fraction of evaluable residues classified as outliers."""
+        """Fraction of evaluable residues classified as outliers.
+
+        Zero when nothing could be evaluated, which is why
+        :attr:`ramachandran_untested` exists: the number alone cannot tell a
+        clean structure from an unmeasured one.
+        """
         if self.ramachandran_evaluated == 0:
             return 0.0
         return len(self.ramachandran_outliers) / self.ramachandran_evaluated
+
+    @property
+    def ramachandran_untested(self) -> bool:
+        """Whether no residue had a computable phi/psi pair.
+
+        A 55-75 residue design always has some, so this means the backbone is
+        not what G0 was handed. It fails rather than passes: an outlier
+        fraction of zero out of zero evaluated residues is absence of
+        evidence, and `FINDINGS.md` F-10 is about what happens when that gets
+        read as evidence of absence.
+        """
+        return self.ramachandran_evaluated == 0
 
     @property
     def passed(self) -> bool:
@@ -150,6 +185,7 @@ class GeometryReport:
             or self.bond_outliers
             or self.non_l_residues
             or self.cis_peptides
+            or self.ramachandran_untested
             or self.ramachandran_outlier_fraction >= self.max_outlier_fraction
         )
 
@@ -172,7 +208,9 @@ class GeometryReport:
             found.append(
                 f"{len(self.clashes)} clash(es), closest {worst_clash.distance_angstrom:.2f} A"
             )
-        if self.ramachandran_outlier_fraction >= self.max_outlier_fraction:
+        if self.ramachandran_untested:
+            found.append("Ramachandran untested: no residue had a computable phi/psi")
+        elif self.ramachandran_outlier_fraction >= self.max_outlier_fraction:
             found.append(
                 f"Ramachandran outliers {self.ramachandran_outlier_fraction:.1%} "
                 f"at or above {self.max_outlier_fraction:.1%}"
@@ -277,45 +315,103 @@ def find_disulfides(structure: Structure, max_distance: float) -> tuple[Disulfid
     return tuple(found)
 
 
-def _chain_breaks(structure: Structure, limit: float) -> tuple[ChainBreak, ...]:
-    found: list[ChainBreak] = []
+def _chain_breaks(
+    structure: Structure, limit: float
+) -> tuple[tuple[ChainBreak, ...], tuple[ChainGap, ...]]:
+    """Separate a broken chain from an unmodelled one.
+
+    A chain break is consecutive *numbering* with non-bonded distance: the
+    backbone claims to continue and the coordinates say it does not, which is
+    the defect `PREREGISTRATION.md` section 3 registers G0 against. A jump in
+    numbering is an unmodelled region; the chain does not claim to continue, so
+    the distance across it means nothing and is recorded rather than judged
+    (`FINDINGS.md` F-12).
+
+    Generated backbones are numbered consecutively by construction, so for a
+    design the two cases do not overlap and nothing is weakened. For a
+    deposited structure the distinction is the difference between passing and
+    failing.
+    """
+    breaks: list[ChainBreak] = []
+    gaps: list[ChainGap] = []
     for chain, residues in structure.chains().items():
         usable = [r for r in residues if r.has("CA")]
         for left, right in itertools.pairwise(usable):
-            gap = float(distances(structure.xyz(left, "CA"), structure.xyz(right, "CA"))[0])
-            if gap > limit:
-                found.append(
-                    ChainBreak(chain=chain, after_residue=left.number, distance_angstrom=gap)
+            span = float(distances(structure.xyz(left, "CA"), structure.xyz(right, "CA"))[0])
+            if right.number != left.number + 1:
+                gaps.append(
+                    ChainGap(
+                        chain=chain,
+                        after_residue=left.number,
+                        next_residue=right.number,
+                        distance_angstrom=span,
+                    )
                 )
-    return tuple(found)
+            elif span > limit:
+                breaks.append(
+                    ChainBreak(chain=chain, after_residue=left.number, distance_angstrom=span)
+                )
+    return tuple(breaks), tuple(gaps)
 
 
-def _clashes(structure: Structure, limit: float) -> tuple[Clash, ...]:
+def _clashes(
+    structure: Structure, limit: float, bonded: frozenset[tuple[int, int]] = frozenset()
+) -> tuple[Clash, ...]:
+    """Heavy-atom pairs closer than ``limit`` that are not bonded to each other.
+
+    Neighbour-searched rather than compared pairwise. The pairwise form built
+    an (n, n, 3) difference array, which reached 632 MB and 4 seconds on a
+    390-residue complex and 10 GB on the four-copy asymmetric unit of 7OW4 --
+    for the gate `PROTOCOL.md` section 8 puts first precisely because it is
+    meant to be cheap (`BUILD_JOURNAL.md` ISSUE-021). A KD-tree pair query is
+    linear in memory and returns the same pairs.
+
+    ``bonded`` carries atom-row pairs that are covalently bonded across
+    residues, which the backbone-adjacency rule below cannot see. Disulfides
+    are the case that matters: `FINDINGS.md` F-11 measured every disulfide in
+    the prepared targets at 2.02-2.08 A against a 2.0 A clash cutoff, so an
+    ordinary S-S bond is 0.02 A from being reported as a clash in a structure
+    the project separately asserts must contain it.
+    """
+    from scipy.spatial import cKDTree  # noqa: PLC0415
+
     rows = structure.heavy_atom_rows()
     if rows.size == 0:
         return ()
     coords = structure.coords[rows]
-    separation = np.linalg.norm(coords[:, None, :] - coords[None, :, :], axis=-1)
-    residue_of = np.array([structure.residue_numbers[row] for row in rows])
-    chain_of = np.array([structure.chain_ids[row] for row in rows])
+    residue_of = [structure.residue_numbers[row] for row in rows]
+    chain_of = [structure.chain_ids[row] for row in rows]
 
-    close = np.argwhere(separation < limit)
     found: list[Clash] = []
-    for first, second in close:
-        if first >= second:
-            continue
+    for first, second in sorted(cKDTree(coords).query_pairs(limit)):
         same_chain = chain_of[first] == chain_of[second]
-        adjacent = abs(int(residue_of[first]) - int(residue_of[second])) <= 1
+        adjacent = abs(residue_of[first] - residue_of[second]) <= 1
         if same_chain and adjacent:
             continue  # bonded or one-three neighbours, not a clash
+        left, right = int(rows[first]), int(rows[second])
+        if (left, right) in bonded or (right, left) in bonded:
+            continue
         found.append(
             Clash(
-                first_atom=int(rows[first]),
-                second_atom=int(rows[second]),
-                distance_angstrom=float(separation[first, second]),
+                first_atom=left,
+                second_atom=right,
+                distance_angstrom=float(np.linalg.norm(coords[first] - coords[second])),
             )
         )
     return tuple(found)
+
+
+def disulfide_atom_pairs(
+    structure: Structure, disulfides: tuple[Disulfide, ...]
+) -> frozenset[tuple[int, int]]:
+    """Atom rows of the SG atoms in each disulfide, as bonded pairs."""
+    return frozenset(
+        (
+            structure.residues[bond.first_residue].atoms["SG"],
+            structure.residues[bond.second_residue].atoms["SG"],
+        )
+        for bond in disulfides
+    )
 
 
 def _bond_outliers(
@@ -390,8 +486,16 @@ def check_geometry(structure: Structure, gates: GateConfig | None = None) -> Geo
                 if np.sign(improper) != L_CHIRALITY_SIGN:
                     non_l.append(index)
 
+            # Only a numerically consecutive neighbour is bonded to this
+            # residue. Across an unmodelled gap the dihedral would be computed
+            # from atoms that are not bonded, which is a meaningless angle
+            # scored as though it were a conformation (`FINDINGS.md` F-12).
             previous = residues[position - 1] if position > 0 else None
+            if previous is not None and previous.number + 1 != residue.number:
+                previous = None
             following = residues[position + 1] if position + 1 < len(residues) else None
+            if following is not None and following.number != residue.number + 1:
+                following = None
             if (
                 previous is not None
                 and following is not None
@@ -438,9 +542,16 @@ def check_geometry(structure: Structure, gates: GateConfig | None = None) -> Geo
                         )
                     )
 
+    disulfides = find_disulfides(structure, config.g0_disulfide_max_angstrom)
+    breaks, gaps = _chain_breaks(structure, config.g0_chain_break_angstrom)
     return GeometryReport(
-        chain_breaks=_chain_breaks(structure, config.g0_chain_break_angstrom),
-        clashes=_clashes(structure, config.g0_clash_distance_angstrom),
+        chain_breaks=breaks,
+        chain_gaps=gaps,
+        clashes=_clashes(
+            structure,
+            config.g0_clash_distance_angstrom,
+            disulfide_atom_pairs(structure, disulfides),
+        ),
         ramachandran_outliers=tuple(outliers),
         ramachandran_evaluated=evaluated,
         bond_outliers=_bond_outliers(
@@ -450,6 +561,6 @@ def check_geometry(structure: Structure, gates: GateConfig | None = None) -> Geo
         ),
         non_l_residues=tuple(non_l),
         cis_peptides=tuple(cis),
-        disulfides=find_disulfides(structure, config.g0_disulfide_max_angstrom),
+        disulfides=disulfides,
         max_outlier_fraction=config.g0_max_ramachandran_outlier_fraction,
     )

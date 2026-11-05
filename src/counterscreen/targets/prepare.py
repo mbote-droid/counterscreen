@@ -46,12 +46,70 @@ class PreparationError(ValueError):
     """Raised when a prepared target fails an assertion it must satisfy."""
 
 
+#: mmCIF values meaning "no alternate conformer at this atom".
+NO_ALTERNATE = frozenset({".", "?", ""})
+
+#: The alternate conformer kept when a residue has several: the first label.
+#: Deposited files order them A, B, ... and the convention is that A is the
+#: one to take when occupancies are equal, which for the files here they are.
+PRIMARY_ALTERNATE = "A"
+
+
+def alternate_conformers(path: Path) -> dict[tuple[str, int, str], tuple[str, ...]]:
+    """Alternate conformers in a file, keyed by (chain, residue, residue name).
+
+    Reported rather than assumed away. `FINDINGS.md` F-13 is about what the
+    silent handling chose: 7OW5 carries one, 7OW4 five, and one of 7OW4's is
+    Gln70 -- a residue amendment A8 names as an M1 target -- modelled in two
+    conformations 6.1 A apart at NE2, each at half occupancy.
+    """
+    atoms = CIFFile.read(path).block["atom_site"]
+    keep = atoms["group_PDB"].as_array() == "ATOM"
+    alt = atoms["label_alt_id"].as_array()[keep]
+    chains = atoms["auth_asym_id"].as_array()[keep]
+    numbers = atoms["auth_seq_id"].as_array(int)[keep]
+    names = atoms["label_comp_id"].as_array()[keep]
+    found: dict[tuple[str, int, str], set[str]] = {}
+    for row in range(len(alt)):
+        label = str(alt[row])
+        if label in NO_ALTERNATE:
+            continue
+        found.setdefault((str(chains[row]), int(numbers[row]), str(names[row])), set()).add(label)
+    return {key: tuple(sorted(labels)) for key, labels in sorted(found.items())}
+
+
 def read_cif(path: Path) -> Structure:
-    """Read an mmCIF file into the atom table the geometry checks consume."""
+    """Read an mmCIF file into the atom table the geometry checks consume.
+
+    Three things are decided here rather than left to whichever row came last
+    in the file (`FINDINGS.md` F-13):
+
+    * **HETATM is dropped**, so waters, ligands and selenomethionine do not
+      enter the geometry checks.
+    * **One conformer is kept** where a residue has alternates: the
+      :data:`PRIMARY_ALTERNATE` label, which for every file here is the equal
+      occupancy half of a 0.5/0.5 pair. Choosing it is a choice, so
+      :func:`alternate_conformers` reports what was there.
+    * **Insertion codes are refused**, not ignored. Two residues sharing a
+      number would have collided into one, and silently keeping some atoms
+      from each is worse than not reading the file.
+    """
     block = CIFFile.read(path).block
     atoms = block["atom_site"]
     groups = atoms["group_PDB"].as_array()
-    keep = groups == "ATOM"
+    alt = atoms["label_alt_id"].as_array()
+    keep = (groups == "ATOM") & np.array(
+        [str(label) in NO_ALTERNATE or str(label) == PRIMARY_ALTERNATE for label in alt]
+    )
+    if "pdbx_PDB_ins_code" in atoms:
+        codes = atoms["pdbx_PDB_ins_code"].as_array()[keep]
+        present = sorted({str(code) for code in codes} - NO_ALTERNATE)
+        if present:
+            msg = (
+                f"{path.name} uses insertion codes {present}, which this reader does "
+                "not handle: two residues would share one number and collapse into one"
+            )
+            raise PreparationError(msg)
     coords = np.stack(
         [atoms[f"Cartn_{axis}"].as_array(float)[keep] for axis in ("x", "y", "z")],
         axis=1,
