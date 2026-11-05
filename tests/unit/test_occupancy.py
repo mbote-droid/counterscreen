@@ -7,8 +7,10 @@ from counterscreen.biophys.occupancy import (
     CopyNumberRange,
     OccupancyError,
     competitive_occupancy,
+    discrimination_at_occupancy,
     kd_for_occupancy,
     occupancy,
+    occupancy_for_discrimination,
     selectivity_surface,
 )
 from counterscreen.core.units import Molar
@@ -172,3 +174,45 @@ def test_the_surface_spans_the_whole_grid() -> None:
     )
     assert surface.values.shape == (7, 7)
     assert surface.minimum <= surface.maximum
+
+
+# --- The occupancy-discrimination trade-off (FINDINGS F-18) -----------------
+
+
+def test_discrimination_interpolates_between_the_kd_ratio_and_one() -> None:
+    assert discrimination_at_occupancy(100.0, 0.0) == pytest.approx(100.0)
+    assert discrimination_at_occupancy(100.0, 0.5) == pytest.approx(50.5)
+    assert discrimination_at_occupancy(100.0, 0.9) == pytest.approx(10.9)
+    assert discrimination_at_occupancy(100.0, 1.0) == pytest.approx(1.0)
+
+
+def test_the_identity_matches_the_mass_action_calculation_exactly() -> None:
+    """D = r(1-x) + x is algebra, not a fit, so it must agree to machine precision."""
+    kd_mutant, kd_wild_type = 1.0, 100.0
+    for concentration in (0.01, 0.1, 1.0, 9.0, 10.0, 100.0, 1000.0):
+        mutant = occupancy(nm(concentration), nm(kd_mutant))
+        wild_type = occupancy(nm(concentration), nm(kd_wild_type))
+        assert mutant / wild_type == pytest.approx(
+            discrimination_at_occupancy(kd_wild_type / kd_mutant, mutant), rel=1e-12
+        )
+
+
+def test_half_the_discrimination_is_gone_at_half_occupancy() -> None:
+    """Which is the concentration a dose would aim for."""
+    for ratio in (10.0, 100.0, 1000.0):
+        assert discrimination_at_occupancy(ratio, 0.5) == pytest.approx((ratio + 1.0) / 2.0)
+
+
+def test_the_trade_off_inverts() -> None:
+    assert occupancy_for_discrimination(100.0, 50.5) == pytest.approx(0.5)
+    assert occupancy_for_discrimination(100.0, 10.9) == pytest.approx(0.9)
+    for occupancy_target in (0.1, 0.5, 0.9, 0.99):
+        achieved = discrimination_at_occupancy(100.0, occupancy_target)
+        assert occupancy_for_discrimination(100.0, achieved) == pytest.approx(occupancy_target)
+
+
+def test_a_ratio_that_cannot_be_traded_is_refused() -> None:
+    with pytest.raises(OccupancyError, match="must exceed 1"):
+        occupancy_for_discrimination(1.0, 1.0)
+    with pytest.raises(OccupancyError, match="between 1 and"):
+        occupancy_for_discrimination(100.0, 200.0)

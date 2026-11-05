@@ -17,6 +17,15 @@ presentation density is accounted for. That is a real therapeutic constraint tha
 on affinity ratios can capture, and a test here reproduces it numerically
 rather than restating it (`PROTOCOL.md` §12.6).
 
+**Discrimination is also a function of dose, which the ranked objective is
+not.** :func:`discrimination_at_occupancy` gives the exact identity
+``D = r(1 - x) + x``: the discrimination a K_D ratio ``r`` actually delivers
+at target occupancy ``x`` interpolates linearly between ``r``, approached only
+as the dose goes to zero, and 1 at saturation. So the affinity ratio the
+pipeline ranks on is its own best case, realised at a concentration that
+binds nothing, and a hundredfold ratio is tenfold at 90% occupancy. See
+`FINDINGS.md` F-18.
+
 **Copy numbers must arrive as a range, never as a value.** `DESIGN.md`
 section 8 registers that as an assertion this package has to satisfy, and
 section 12.6 gives the reason: pMHC copy numbers for this epitope are not well
@@ -116,6 +125,48 @@ def competitive_occupancy(
     return bound / (1.0 + bound + blocked)
 
 
+def discrimination_at_occupancy(kd_ratio: float, target_occupancy: float) -> float:
+    """Discrimination actually achieved at a given target occupancy.
+
+    ``D = r(1 - x) + x`` for a K_D ratio ``r`` and target occupancy ``x``.
+    Exact, not an approximation: substituting the concentration that gives
+    occupancy ``x`` into the ratio of occupancies
+    ``(K_wt + [B]) / (K_mut + [B])`` cancels the concentration entirely.
+
+    The consequence is the one `FINDINGS.md` F-18 is about. Discrimination is
+    a linear interpolation between the full K_D ratio, approached only as
+    occupancy goes to zero, and 1 at saturation -- so the affinity ratio this
+    pipeline ranks on is the value at a dose that binds nothing. A hundredfold
+    ratio yields 50.5-fold at half occupancy and 10.9-fold at 90%.
+    """
+    if kd_ratio <= 0.0:
+        msg = f"a K_D ratio must be positive, got {kd_ratio}"
+        raise OccupancyError(msg)
+    if not 0.0 <= target_occupancy <= 1.0:
+        msg = f"occupancy must lie in [0, 1], got {target_occupancy}"
+        raise OccupancyError(msg)
+    return kd_ratio * (1.0 - target_occupancy) + target_occupancy
+
+
+def occupancy_for_discrimination(kd_ratio: float, discrimination: float) -> float:
+    """Return the most target occupancy that still leaves a given discrimination.
+
+    Inverts :func:`discrimination_at_occupancy`: ``x = (r - D) / (r - 1)``.
+    Answers the question `PROTOCOL.md` section 12.6 item 2 asks in the other
+    direction -- not what affinity is needed for occupancy, but what occupancy
+    costs in specificity.
+    """
+    if kd_ratio <= 1.0:
+        msg = f"a K_D ratio must exceed 1 to trade against, got {kd_ratio}"
+        raise OccupancyError(msg)
+    if not 1.0 <= discrimination <= kd_ratio:
+        msg = (
+            f"discrimination must lie between 1 and the K_D ratio {kd_ratio}, got {discrimination}"
+        )
+        raise OccupancyError(msg)
+    return (kd_ratio - discrimination) / (kd_ratio - 1.0)
+
+
 def kd_for_occupancy(binder: Molar, target_occupancy: float) -> Molar:
     """Return the K_D needed to reach an occupancy at a given concentration.
 
@@ -154,11 +205,19 @@ class SelectivitySurface:
         return float(self.values.max())
 
     def fraction_below(self, threshold: float = 1.0) -> float:
-        """Share of the surface at or below a selectivity threshold.
+        """Share of the grid at or below a selectivity threshold.
 
         At 1.0 this is the share of the stated parameter range in which the
         design is not selective at all in bound complexes per cell, whatever
         its K_D ratio says.
+
+        **It is a share of grid points, and the grid is log-spaced**, so this
+        is an average under an implicit log-uniform prior over copy numbers --
+        a choice, not a neutral summary, and the only defensible default when
+        the density is known to within orders of magnitude. It is not a
+        probability: the copy-number range is a stated interval, not a
+        distribution anyone measured. Report :attr:`minimum` alongside it,
+        which carries no prior at all.
         """
         return float(np.mean(self.values <= threshold))
 

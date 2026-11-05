@@ -178,12 +178,40 @@ def test_a_control_with_no_off_targets_has_no_difficulty() -> None:
 
 
 def test_the_published_panel_does_not_reach_the_floor() -> None:
-    """PREREGISTRATION section 6b needs five; the panel supplies one."""
+    """PREREGISTRATION section 6b needs five; the panel supplies none runnable.
+
+    `FINDINGS.md` F-3 counted one single-residue discrimination, and F-16
+    found that the shortfall is the full five rather than four: the one
+    qualifying control has no published binder sequence, so it cannot be
+    folded and cannot calibrate anything.
+    """
     report = assess_floor(liu_controls())
     assert report.positives == 9
     assert report.single_residue == 1
+    assert report.foldable == 0
+    assert report.usable == 0
     assert not report.met
-    assert report.shortfall == MIN_POSITIVE_CONTROLS - 1
+    assert report.shortfall == MIN_POSITIVE_CONTROLS
+
+
+def test_a_single_residue_control_that_cannot_be_folded_does_not_count() -> None:
+    """Two independent counts could not answer the question the floor asks."""
+    unfoldable = [
+        Control(
+            name=f"paper{i}",
+            role=ControlRole.POSITIVE,
+            allele="A*11:01",
+            target="KRAS G12D",
+            on_target_peptide="VVVGADGVGK",
+            off_target_peptides=(("VVVGAGGVGK", "wild type"),),
+        )
+        for i in range(MIN_POSITIVE_CONTROLS)
+    ]
+    report = assess_floor(unfoldable)
+    assert report.single_residue == MIN_POSITIVE_CONTROLS
+    assert report.foldable == 0
+    assert not report.met, "the floor cannot be met by controls that cannot run"
+    assert report.shortfall == MIN_POSITIVE_CONTROLS
 
 
 def test_the_panel_reports_how_many_controls_can_actually_be_folded() -> None:

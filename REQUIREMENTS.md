@@ -69,6 +69,7 @@ A requirement with no verification method is not a requirement; it is a wish.
 | S-09 | ΔΔG_spec shall not affect ranking outside M1 | varied on M2/M3; order unchanged | **verified** |
 | S-10 | REU shall not be combinable with kcal/mol | type error and runtime `TypeError` | **verified** |
 | S-11 | The pooled SD used by G4 and the tie tolerance shall be one defined quantity | `tests/unit/test_noise.py`, `tests/property/test_margin_properties.py` | **verified** — amendment A9; `NoiseFloor` is required by `exceeds_noise` and by `rank_arm`, so neither reading can be selected by omission |
+| S-12 | TM-score symmetrisation shall be registered, not chosen per run | `symmetrise` takes the larger direction; the choice is shown to change the clustering | **verified** — amendment A11 |
 
 ## E · Evaluation and controls
 
@@ -82,6 +83,8 @@ A requirement with no verification method is not a requirement; it is a wish.
 | E-06 | Stage −1 shall produce a false-reject rate with an interval | — | **pending** — needs the panel folded |
 | E-07 | The filter shall have a measured false-accept rate with an interval | — | **pending** — needs the full pipeline |
 | E-08 | No target shall appear in both train and test splits | — | **pending** — needs the evaluation set |
+| E-09 | The Stage −1 floor shall count only controls that can be folded | five single-residue controls with no sequences do not meet it | **verified** — `FINDINGS.md` F-16 |
+| E-10 | A derived negative control shall differ from its positive | identity shuffle and palindromic reversal refused | **verified** — `FINDINGS.md` F-16 |
 
 ## P · Provenance and reproducibility
 
@@ -122,6 +125,10 @@ A requirement with no verification method is not a requirement; it is a wish.
 | A-03 | No package shall exist outside the dependency table | set equality against `DESIGN.md` §1 | **verified** |
 | A-04 | The Python pin shall agree in all four places that state it | consistency test | **verified** |
 | A-05 | The image shall build and its entrypoint run | CI job | **verified** |
+| A-06 | A K_D outside the measured concentration range shall not be reported as determined | 154× extrapolation flagged, ratio refused | **verified** — `FINDINGS.md` F-17 |
+| A-07 | An untested 1:1 adequacy shall not be expressible as adequate | three-state `Adequacy` | **verified** — `FINDINGS.md` F-17 |
+| A-08 | The runs-test critical value shall match the stated one-sided α | derived from the registered confidence level | **verified** — `FINDINGS.md` F-17 |
+| A-09 | Realised discrimination shall be computable from the K_D ratio and the occupancy | identity checked against mass action to machine precision | **verified** — `FINDINGS.md` F-18 |
 
 ---
 
@@ -129,9 +136,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 68 |
+| Verified | 75 |
 | Pending | 4 |
-| **Total** | **72** |
+| **Total** | **79** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

@@ -38,7 +38,7 @@ reader of a preprint cannot infer that from the finding alone.
 |---|---|---|---|
 | **F-1** | Direct observation, four independent copies | That the discriminating residue is experimentally undetermined in the apo state | Any claim about *why*, or about what a predictor does with it — that is the open question, not the answer |
 | **F-2** | Documentary, decisive | That [R11]'s accession is wrong and D3–D5 are unbuildable | Nothing about the Zhu structures themselves, which remain unread |
-| **F-3** | Direct count from published sequences | That the panel supplies one single-residue control against a floor of five | Nothing about whether the Liu binders work, which is their own paper's result |
+| **F-3** | Direct count from published sequences | That the panel supplies one single-residue control against a floor of five, and F-16 that **none of them is runnable** | Nothing about whether the Liu binders work, which is their own paper's result |
 | **F-4** | Self-referential | That the registered rule rejects its own document | Nothing scientific |
 | **F-5** | Standard measurement, one structure | That M1's specified handle does not exist and Asp6 is largely buried | **Not a discovery.** `PROTOCOL.md` §3.3 predicted this in prose; the contribution is quantifying it and acting before GPU spend. SASA and contact distances on a deposited structure are routine |
 | **F-6** | Controlled structural comparison | That the known discriminator reads accessible positions that move rather than the buried one that changes | **The substantive finding.** Still one receptor, one structure pair, and that receptor binds both complexes — so it evidences *how it binds* more strongly than *how it discriminates* |
@@ -51,18 +51,31 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-13** | Complete census of alternate conformers in the five source files | That conformer selection was being made by file order at half occupancy, and that Gln70 — an M1 target under A8 — is one of them | Nothing about which conformer is right; at 0.5/0.5 the data does not say. It is one apo structure, so it does not license a claim that Gln70 is mobile when a receptor is bound |
 | **F-14** | Re-measurement with the coercion removed | That F-5's zero is a measured zero, and that the path it came through could not have distinguished one | Nothing further about Asp6. The audit covers this project's SASA path only |
 | **F-15** | Direct measurement over 1,409 residues of five experimental structures | That the improper-dihedral sign convention for L-amino acids is as assumed, so the chirality check is correctly oriented | Nothing about the Ramachandran criterion, which remains the coarse approximation F-9 left it. Confirming a sign is not validating the gate |
+| **F-16** | Direct test of the go/no-go logic | That the floor could be met by controls that cannot be folded, and that the published panel supplies **zero** runnable single-residue controls rather than one | Nothing about whether the Liu binders work. It sharpens F-3's count; it does not add evidence about the panel itself |
+| **F-17** | Direct measurement on a synthetic curve with a known K_D, n = 2 noise levels | That a fit can report a K_D 154× above the highest concentration tested with 0.34 relative error and no flag, and that the existing guards cannot see it | Nothing about the returned data, which does not exist yet. Two noise levels on one curve shape, so the 4-fold spread is an illustration, not a general error model |
+| **F-18** | Exact algebraic identity, verified against the mass-action code to machine precision | That realised discrimination is `r(1 − x) + x` in target occupancy, so a K_D ratio is its best case at vanishing dose | **No new biology.** Mass action is textbook, and the identity follows in two lines. It licenses a claim-discipline requirement — a ratio means nothing without a stated occupancy — not a discovery |
+| **F-19** | Reasoning from the metric's construction, supported by the chain composition of the prepared decoys | That `M_pep` and `M_var` compare complexes of different composition, so part of each is normalisation rather than discrimination, and that the registered invariant-surface control measures that bias | **Not yet measured.** No model has been run, so the bias's size and sign are argued from how interface metrics are normalised, not observed. It licenses treating the invariant control's `M_pep` as a calibration; it does not license a correction before that number exists |
 
-**Ranked by what a reader should care about: F-6, then F-1, then F-8, then the
-rest.** F-6 proposes a mechanism with a testable consequence — that a binder
+**Ranked by what a reader should care about: F-6, then F-1, then F-8 and F-18,
+then the rest.** F-6 proposes a mechanism with a testable consequence — that a binder
 reading positions 7–9 geometry can discriminate without contacting position 6.
 F-1 poses a question nobody has answered. F-8 is transferable: anyone testing
 1:1 adequacy on an eight-point isotherm is reporting statistical power rather
 than a binding model, and that mistake is not specific to this project. F-5
 and F-7 are engineering diligence: they corrected a plan before it cost
 anything, which is valuable to this project and not a contribution to the
-field. F-9 and F-10 are findings about this build's own instruments — a gate
-that rejected its positive controls, and a guard aimed at the wrong class of
-fact.
+field. F-18 is transferable for the same reason as F-8 and in the same
+place — a reported affinity ratio without a stated occupancy is a best case,
+not a property — though it is textbook mass action rather than anything new.
+F-9 to F-17 are findings about this build's own instruments: a gate that
+rejected its positive controls, a guard aimed at the wrong class of fact, a
+clash cutoff contradicting a disulfide assertion, a reader choosing
+conformers by file order, and a re-fitter reporting a K_D its data could not
+determine. They are the premortem's output, and they are engineering rather
+than science. F-19 is the one of that group with a claim attached: it says
+`M_pep` is partly an artefact of how interface confidence is normalised, and
+that the registered invariant-surface control is the instrument that measures
+it.
 
 None of them is a result about a design. Nothing in this pipeline has been
 run.
@@ -179,6 +192,12 @@ off-target:
    §6b floor of five single-residue positive controls still requires the
    supplementary controls of `SETUP.md` §4.2 — now demonstrably, since the
    panel supplies one.
+
+> **Sharpened by F-16, 5 November.** The shortfall is the full five, not four.
+> The one qualifying single-residue control is one of these designs, so it has
+> no sequence either and cannot be folded. The panel supplies **zero** runnable
+> single-residue controls, and the go/no-go has none of its registered input
+> rather than a fifth of it.
 
 > An earlier note in this file claimed the preprint contained no
 > supplementary table. That was wrong: the tables are page images and the
@@ -768,3 +787,184 @@ owed verification that is silently discharged by other work is worse than one
 still outstanding: it makes the register of what is unverified wrong in the
 direction of over-caution, and a register that over-reports doubt gets
 discounted.
+
+---
+
+## F-16 · The Stage −1 go/no-go could read "floor met" with nothing runnable
+
+**Believed.** `assess_floor` reported three numbers — positives,
+single-residue discriminations, foldable controls — and `met` compared the
+single-residue count against the registered floor of five. F-3 used it to
+establish that the published panel supplies **one** single-residue control
+against a floor of five, a shortfall of four.
+
+**Checked.** Five single-residue positive controls with no binder sequences
+reported `met = True` and `foldable = 0`. Stage −1 folds every control through
+the procedure a design receives, so a control with no sequence contributes
+nothing to the calibration whatever its peptides differ by. The gate that
+decides whether the neural arm proceeds at all could have passed on controls
+that cannot be run.
+
+**The counts could not express the question.** `single_residue` and
+`foldable` were counted independently over the panel, so the report did not
+contain the number the floor is about — controls that are **both**. Two
+marginal counts cannot recover a joint one.
+
+**F-3 was understated.** With `usable` computed, the published panel supplies
+**zero** runnable single-residue controls, not one: the single qualifying
+control is one of the Liu binders whose sequences were never obtained. The
+shortfall against the registered floor is the full **five**, not four. The
+go/no-go was reported as 80% short of its input; it is 100% short.
+
+**Changed.** `FloorReport` carries `usable`, `met` and `shortfall` read from
+it, and `__post_init__` refuses counts that cannot describe one panel. A
+second guard went in alongside: `negative_from` now refuses a derived negative
+control identical to its positive, which a shuffle returning the identity or a
+palindromic reversal would produce — a negative control registered to fail a
+gate it should pass.
+
+---
+
+## F-17 · The re-fitter reports a K_D the data cannot determine
+
+**Believed.** `PROTOCOL.md` §12.5 makes independent re-fitting of returned
+sensorgrams a headline commitment, and `DESIGN.md` §8 guards it by refusing a
+K_D without a standard error. A fit that converges and carries a usable
+uncertainty was treated as a measurement.
+
+**Checked.** A five-point series at 1–100 nM against a synthetic curve whose
+true K_D is 10 µM — a hundredfold above the top concentration, which is the
+ordinary case of a weak binder measured on a standard series:
+
+| Noise | Fitted K_D | Relative SE | Above top point | `one_to_one_adequate` |
+|---|---|---|---|---|
+| 1% | 15.4 µM | 0.34 | **154×** | reported `True` |
+| 3% | 3.9 µM | 0.53 | 39× | reported `True` |
+
+The same underlying truth gives answers **4-fold apart** from 1% and 3%
+noise, both with respectable-looking error bars and neither flagged.
+
+**Why, and why the existing guards miss it.** Below the K_D the isotherm is
+still linear: `R ≈ (R_max/K_D)·C`. Only the **ratio** is determined, so K_D
+and R_max trade off against each other almost freely while the residuals stay
+small. The uncertainty guard does not catch it because the standard error is
+finite and not even large; the delta-method caveat does not catch it because
+0.34 sits inside the range the module documents as reliable; and the runs test
+does not catch it because the 1:1 model is not *wrong* here — it is
+unidentified, which is a different defect.
+
+**Changed.** `SteadyStateFit` now requires the concentration range it was
+fitted over — a fit that does not know what was measured cannot say whether it
+is determined — and exposes `kd_is_identified` and `kd_range_multiple`, so a
+report can say "154× above the highest concentration tested" rather than
+"15 µM". `classify` returns a fitted call only for an identified K_D;
+otherwise the curve falls through to the association-shift test, which is
+exactly what `PROTOCOL.md` §3.5's second class is for — a curve the series
+cannot pin a K_D on. `specificity_ratio` **refuses** two fits unless both are
+identified, because that is the point where an extrapolation would have become
+a headline ratio with an interval around it.
+
+**Two statistics corrections came with it.** The runs-test critical value was
+−1.96, the *two-sided* 5% quantile used in a one-sided test, so the
+implemented α was 0.025 while F-8 reported its power "at α = 0.05". It is now
+derived as the one-sided 5% quantile, −1.645; F-8's conclusion is unchanged
+(z = −1.44 at eight points is still undetected) and a test pins that.
+And `one_to_one_adequate` returned `True` when the test could not run, with a
+docstring telling the caller not to read it that way — prose guarding an API
+that invited the error. It is now a three-state `Adequacy`, so `UNTESTED`
+cannot be mistaken for a verdict.
+
+---
+
+## F-18 · The objective is dose-free; the discrimination it buys is not
+
+**Believed.** The project ranks on specificity margins and, at the wet-lab
+stage, on K_D ratios: `K_D(WT)/K_D(G12D)`. §12.6 already warns that a
+hundredfold ratio can give a selectivity index near 1 once presentation
+density is folded in, and `biophys/occupancy.py` computes that surface. The
+ratio itself was treated as a dose-independent property of a design.
+
+**Checked.** Substituting the concentration that produces target occupancy
+`x` into the ratio of occupancies cancels the concentration exactly:
+
+```
+theta_mut / theta_wt = (K_wt + [B]) / (K_mut + [B]) = r(1 - x) + x
+```
+
+An identity, verified against the mass-action code to machine precision at
+seven concentrations. Discrimination interpolates **linearly** between the
+full K_D ratio — approached only as the dose goes to zero — and 1 at
+saturation:
+
+| Target occupancy | Discrimination from a 100-fold K_D ratio |
+|---|---|
+| 1% | 99.0× |
+| 50% | 50.5× |
+| 90% | **10.9×** |
+| 99% | 2.0× |
+
+**What it means for the project.** The K_D ratio is the design's *best case*,
+realised at a concentration that binds almost nothing. Occupancy and
+selectivity cannot both be had: at half occupancy — the dose a therapeutic
+would aim for, since that is what `K_D` means — exactly half the ratio is
+already gone, and `(r+1)/2` holds for every `r`. To reach 90% occupancy of the
+neoantigen, a hundredfold-selective binder is tenfold-selective.
+
+This does not change what to optimise: more ratio is still more
+discrimination at every dose, and the linearity means the trade is
+proportional rather than cliff-edged. What it changes is **what may be
+claimed**. A reported K_D ratio, or a specificity margin standing in for one,
+is meaningless without the concentration it would be used at, and
+`PROTOCOL.md` §20's claim discipline should cover it the way it covers
+computational screens: a ratio licenses a statement about discrimination *at a
+stated occupancy*, and nothing about a dose nobody named.
+
+**Changed.** `discrimination_at_occupancy` and
+`occupancy_for_discrimination` make the trade-off computable rather than
+implicit, with the identity tested against the mass-action path. Recorded
+alongside: `fraction_below` averages over a **log-spaced** grid, so it is an
+average under an implicit log-uniform prior over copy numbers — a choice, now
+stated, and `minimum` is the summary that carries no prior.
+
+---
+
+## F-19 · Only one of the three margins compares like with like
+
+**Believed.** The three margins are the same quantity computed against
+different decoys: `M_mut` against the wild-type complex, `M_pep` against the
+empty groove, `M_var` against variant peptides. G4 applies one noise rule to
+all three.
+
+**Checked.** What each comparison holds constant:
+
+| Margin | Decoy | Differs from T+ by |
+|---|---|---|
+| `M_mut` | D1, wild-type complex | **one side chain**; same chains, same residue count |
+| `M_pep` | D2, empty groove | an entire **10-residue chain** |
+| `M_var` | D3–D5, variant peptides | peptide **sequence and, for the 9-mers, length** |
+
+Interface confidence metrics are normalised quantities computed over
+inter-chain residue pairs. Removing the peptide removes every binder–peptide
+pair from the interface being scored, which changes the metric's
+normalisation, not only the biology. So `M_pep` carries an additive bias of
+unknown size from the comparison itself, and the bias runs in the **same
+direction as the signal**: a smaller, worse-scoring interface at D2 looks like
+peptide dependence even for a binder that reads only the HLA platform. The
+margin the project ranks on is inflated by the way it is measured.
+`M_mut` has no such term — one side chain, everything else identical — which
+is a reason to prefer it beyond the ones already registered.
+
+**Changed — the control that measures it already exists.** `PROTOCOL.md` §5.1
+registers an **invariant-surface control**: a binder deliberately aimed at the
+α1/α2 helices away from the peptide, expected to show "no margin on any
+comparison", and `PREREGISTRATION.md` §2 already requires `|M_mut|` and
+`|M_pep|` both small for it. That control's `M_pep` **is** the composition
+bias: a binder that does not touch the peptide has no biological reason to
+score differently against an empty groove, so whatever margin it shows is the
+measurement. Nothing in the specification says to read it that way, and the
+difference matters: a non-zero value is currently a control failure, when it
+should be a calibration to subtract from every `M_pep` and to report beside
+it. Recorded as a reading of the registered condition rather than a new
+control, so no amendment is needed — but it must be applied when Stage −1
+runs, and it is the one number that can tell the difference between a
+peptide-dependent binder and a metric that rewards a smaller interface.

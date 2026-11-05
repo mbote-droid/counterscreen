@@ -47,13 +47,14 @@ ambiguous result and averaging it into either bucket hides that.
 import dataclasses
 import itertools
 import math
+import statistics
 from collections.abc import Sequence
 from enum import StrEnum
 
 import numpy as np
 from numpy.typing import NDArray
 
-from counterscreen.core.intervals import Z_TWO_SIDED
+from counterscreen.core.intervals import CONFIDENCE_LEVEL, Z_TWO_SIDED
 
 #: The challenge's alternative binding criterion when no K_D can be fitted.
 SHIFT_THRESHOLD_PERCENT = 300.0
@@ -64,7 +65,16 @@ MIN_RESIDUALS_FOR_RUNS_TEST = 8
 
 #: A runs-test z below this is systematic residual structure: too few runs
 #: for independent noise, which is what an inadequate 1:1 fit looks like.
-RUNS_Z_THRESHOLD = -1.96
+#:
+#: Derived, and **one-sided**. The alternative is directional -- an inadequate
+#: model gives *fewer* sign changes, never more -- so the critical value is the
+#: 5% quantile, -1.645. This previously held -1.96, which is the *two-sided*
+#: 5% quantile and therefore a one-sided test at 2.5%, while `FINDINGS.md`
+#: F-8 reported its power "at alpha = 0.05". Halving the stated alpha costs
+#: power in a test whose purpose is to *detect* inadequacy, which is the wrong
+#: direction to be conservative in: a missed inadequate fit is reported as a
+#: K_D, and a spurious one only sends a curve for another look.
+RUNS_Z_THRESHOLD = statistics.NormalDist().inv_cdf(1.0 - CONFIDENCE_LEVEL)
 
 
 #: Accepted input for a measured series: a plain sequence or a numpy array.
@@ -73,6 +83,21 @@ Series = Sequence[float] | NDArray[np.float64]
 
 class RefitError(ValueError):
     """Raised when a sensorgram cannot be re-fitted or interpreted."""
+
+
+class Adequacy(StrEnum):
+    """Whether the 1:1 model was tested, and what the test said.
+
+    Three states, not two. ``UNTESTED`` existed before as
+    ``one_to_one_adequate`` returning ``True`` with a docstring warning that
+    the caller must not read it as adequacy -- a guard made of prose over an
+    API that invited the error (`FINDINGS.md` F-8, F-10). A caller now has to
+    handle the third case to get an answer at all.
+    """
+
+    ADEQUATE = "adequate"
+    INADEQUATE = "inadequate"
+    UNTESTED = "untested"
 
 
 class BindingCall(StrEnum):
@@ -92,18 +117,33 @@ def langmuir_steady_state(
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class SteadyStateFit:
-    """A fitted isotherm, which cannot exist without its uncertainty."""
+    """A fitted isotherm, which cannot exist without its uncertainty.
+
+    It also cannot exist without the concentration range it was fitted over.
+    Outside that range ``R_max`` and ``K_D`` are not separately identifiable --
+    below it the isotherm is still linear and only the ratio ``R_max / K_D``
+    is determined -- so a K_D above the top concentration is an extrapolation
+    wearing the clothes of a measurement (`FINDINGS.md` F-17).
+    """
 
     kd: float
     kd_stderr: float
     r_max: float
     r_max_stderr: float
     residuals: tuple[float, ...]
+    concentration_low: float
+    concentration_high: float
 
     def __post_init__(self) -> None:
         """Refuse a fit that reports a value without saying how well determined it is."""
         if self.kd <= 0 or not math.isfinite(self.kd):
             msg = f"K_D must be positive and finite, got {self.kd}"
+            raise RefitError(msg)
+        if not 0.0 < self.concentration_low <= self.concentration_high:
+            msg = (
+                f"concentration range {self.concentration_low} to "
+                f"{self.concentration_high} is not a usable series"
+            )
             raise RefitError(msg)
         if not math.isfinite(self.kd_stderr) or self.kd_stderr < 0:
             msg = (
@@ -120,21 +160,48 @@ class SteadyStateFit:
         return self.kd_stderr / self.kd
 
     @property
+    def kd_is_identified(self) -> bool:
+        """Whether K_D lies inside the concentration range that was measured.
+
+        The standard SPR requirement, and not a conservative one: a series
+        ideally brackets K_D. Outside the range the data constrain only the
+        initial slope, so the reported K_D and R_max can trade off against
+        each other almost freely while the residuals stay small and the
+        standard error stays respectable (`FINDINGS.md` F-17).
+        """
+        return self.concentration_low <= self.kd <= self.concentration_high
+
+    @property
+    def kd_range_multiple(self) -> float:
+        """How far outside the measured range K_D sits, as a factor.
+
+        ``1.0`` when inside. Reportable, because "154x above the highest
+        concentration tested" says what "K_D = 15 uM" conceals.
+        """
+        if self.kd > self.concentration_high:
+            return self.kd / self.concentration_high
+        if self.kd < self.concentration_low:
+            return self.concentration_low / self.kd
+        return 1.0
+
+    @property
     def residual_runs_z(self) -> float | None:
         """Runs-test z on residual signs, or ``None`` when too few points."""
         return runs_test_z(self.residuals)
 
     @property
-    def one_to_one_adequate(self) -> bool:
-        """Whether the residuals look like independent noise.
+    def one_to_one_adequacy(self) -> Adequacy:
+        """Whether the residuals look like independent noise, or were untested.
 
-        ``True`` when the runs test cannot reject independence. With too few
-        residuals to test, this reports ``True`` and
-        :attr:`residual_runs_z` is ``None`` — absence of evidence, which the
-        caller must not read as evidence of adequacy.
+        An eight-point isotherm -- what a real SPR experiment supplies -- gives
+        the runs test no power, so most campaign curves land on
+        :attr:`Adequacy.UNTESTED` rather than on a verdict. That is the whole
+        content of `FINDINGS.md` F-8 and it is now in the return type.
         """
         z = self.residual_runs_z
-        return z is None or z > RUNS_Z_THRESHOLD
+        if z is None:
+            return Adequacy.UNTESTED
+        return Adequacy.ADEQUATE if z > RUNS_Z_THRESHOLD else Adequacy.INADEQUATE
 
 
 def runs_test_z(residuals: Series) -> float | None:
@@ -196,6 +263,8 @@ def fit_steady_state(concentrations: Series, responses: Series) -> SteadyStateFi
         r_max=float(popt[0]),
         r_max_stderr=float(errors[0]),
         residuals=tuple(float(v) for v in (y - fitted)),
+        concentration_low=float(x.min()),
+        concentration_high=float(x.max()),
     )
 
 
@@ -204,8 +273,17 @@ def classify(
     association_shift_percent: float,
     threshold: float = SHIFT_THRESHOLD_PERCENT,
 ) -> BindingCall:
-    """Classify a curve as fitted, shift-only, or non-binding."""
-    if fit is not None:
+    """Classify a curve as fitted, shift-only, or non-binding.
+
+    A fit whose K_D falls outside the concentration range is treated as *not
+    fitted*, which is what `PROTOCOL.md` section 3.5's second class is for: a
+    curve the series cannot pin a K_D on is exactly the "cannot be fitted"
+    case, and it still counts as binding if the association shift clears the
+    threshold. The registered three classes are unchanged; what changed is
+    that an unidentifiable K_D no longer enters the first one
+    (`FINDINGS.md` F-17).
+    """
+    if fit is not None and fit.kd_is_identified:
         return BindingCall.FITTED
     if association_shift_percent >= threshold:
         return BindingCall.SHIFT_ONLY
@@ -239,6 +317,16 @@ def specificity_ratio(decoy: SteadyStateFit, target: SteadyStateFit) -> Specific
     Both fits are assumed independent, which holds when they come from
     separate sensorgrams.
     """
+    unidentified = [
+        name for name, fit in (("decoy", decoy), ("target", target)) if not fit.kd_is_identified
+    ]
+    if unidentified:
+        msg = (
+            f"the {' and '.join(unidentified)} K_D lies outside the concentration range "
+            "measured, so the ratio would propagate an extrapolation. Report the shift "
+            "class or widen the series; PROTOCOL.md section 12.5 and FINDINGS.md F-17"
+        )
+        raise RefitError(msg)
     ratio = decoy.kd / target.kd
     # Delta method: sigma_ln(x) ~= sigma_x / x. First order, so it degrades as
     # relative error grows; see the module docstring for the validity range.

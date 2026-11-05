@@ -8,6 +8,7 @@ from counterscreen.rank.clustering import (
     representatives,
     single_linkage,
     summarise_clusters,
+    symmetrise,
 )
 
 REGISTERED_THRESHOLD = 0.5  # PREREGISTRATION section 4 step 2, amendment A2
@@ -120,3 +121,32 @@ def test_non_finite_similarity_is_refused() -> None:
 
 def test_a_single_design_is_its_own_cluster() -> None:
     assert single_linkage(["a"], matrix([[1.0]]), REGISTERED_THRESHOLD) == (("a",),)
+
+
+# --- Symmetrisation is part of the registered rule (amendment A11) ----------
+
+
+def test_symmetrise_takes_the_larger_direction() -> None:
+    asymmetric = np.array([[1.0, 0.6], [0.4, 1.0]])
+    symmetric = symmetrise(asymmetric)
+    assert symmetric.tolist() == [[1.0, 0.6], [0.6, 1.0]]
+
+
+def test_the_choice_of_direction_changes_the_clustering() -> None:
+    """Why it had to be registered rather than left to the caller.
+
+    One pair, one direction above the 0.5 boundary and one below. Taking the
+    larger merges them into one fold family; taking the smaller submits both.
+    """
+    labels = ["a", "b"]
+    asymmetric = np.array([[1.0, 0.62], [0.38, 1.0]])
+    merged = single_linkage(labels, symmetrise(asymmetric), 0.5)
+    split = single_linkage(labels, np.minimum(asymmetric, asymmetric.T), 0.5)
+    assert merged == (("a", "b"),)
+    assert split == (("a",), ("b",))
+
+
+def test_an_asymmetric_matrix_is_still_refused_by_the_clusterer() -> None:
+    """Symmetrising is a step the caller must take, not one hidden inside."""
+    with pytest.raises(ClusteringError, match="symmetric"):
+        single_linkage(["a", "b"], np.array([[1.0, 0.6], [0.4, 1.0]]), 0.5)

@@ -8,6 +8,7 @@ import pytest
 
 from counterscreen.analyze.refit import (
     SHIFT_THRESHOLD_PERCENT,
+    Adequacy,
     BindingCall,
     RefitError,
     SteadyStateFit,
@@ -33,8 +34,15 @@ def paths(tmp_path: Path) -> CampaignPaths:
 
 
 def a_fit(kd: float = 1e-8, rel: float = 0.05) -> SteadyStateFit:
+    """Build a fit whose K_D sits inside the series that produced it."""
     return SteadyStateFit(
-        kd=kd, kd_stderr=kd * rel, r_max=100.0, r_max_stderr=2.0, residuals=(0.1, -0.1)
+        kd=kd,
+        kd_stderr=kd * rel,
+        r_max=100.0,
+        r_max_stderr=2.0,
+        residuals=(0.1, -0.1),
+        concentration_low=kd / 10.0,
+        concentration_high=kd * 10.0,
     )
 
 
@@ -86,12 +94,28 @@ def test_a_fit_without_a_usable_uncertainty_is_refused() -> None:
     """DESIGN section 8: never a bare point value."""
     for bad in (math.nan, -1.0, math.inf):
         with pytest.raises(RefitError, match="not a usable uncertainty"):
-            SteadyStateFit(kd=1e-8, kd_stderr=bad, r_max=100.0, r_max_stderr=1.0, residuals=())
+            SteadyStateFit(
+                kd=1e-8,
+                kd_stderr=bad,
+                r_max=100.0,
+                r_max_stderr=1.0,
+                residuals=(),
+                concentration_low=1e-9,
+                concentration_high=1e-7,
+            )
 
 
 def test_a_non_positive_kd_is_refused() -> None:
     with pytest.raises(RefitError, match="positive and finite"):
-        SteadyStateFit(kd=0.0, kd_stderr=1.0, r_max=1.0, r_max_stderr=1.0, residuals=())
+        SteadyStateFit(
+            kd=0.0,
+            kd_stderr=1.0,
+            r_max=1.0,
+            r_max_stderr=1.0,
+            residuals=(),
+            concentration_low=1e-9,
+            concentration_high=1e-7,
+        )
 
 
 # --- Fitting ----------------------------------------------------------------
@@ -148,7 +172,7 @@ def test_too_few_residuals_report_nothing_rather_than_a_number() -> None:
 def test_a_fit_with_too_few_residuals_does_not_claim_adequacy_evidence() -> None:
     fit = a_fit()
     assert fit.residual_runs_z is None
-    assert fit.one_to_one_adequate  # absence of evidence, not evidence of absence
+    assert fit.one_to_one_adequacy is Adequacy.UNTESTED
 
 
 def test_heterogeneous_binding_is_detected_once_there_are_enough_points() -> None:
@@ -223,3 +247,79 @@ def test_uncertainty_compounds_across_both_fits() -> None:
     one = specificity_ratio(a_fit(rel=0.1), a_fit(rel=0.0))
     both = specificity_ratio(a_fit(rel=0.1), a_fit(rel=0.1))
     assert both.log_stderr > one.log_stderr
+
+
+# --- Identifiability of K_D (FINDINGS F-17) ---------------------------------
+
+
+def a_series_that_cannot_pin_a_kd() -> tuple[list[float], list[float]]:
+    """Five concentrations well below K_D: the isotherm is still linear."""
+    import numpy as np  # noqa: PLC0415
+
+    from counterscreen.analyze.refit import langmuir_steady_state  # noqa: PLC0415
+
+    concentrations = np.array([1.0, 3.0, 10.0, 30.0, 100.0])
+    responses = langmuir_steady_state(concentrations, 100.0, 10_000.0)
+    rng = np.random.default_rng(7)
+    noisy = responses * (1 + rng.normal(0.0, 0.01, size=responses.size))
+    return list(concentrations), list(noisy)
+
+
+def test_a_kd_above_the_measured_range_is_not_treated_as_determined() -> None:
+    """The fit succeeds, looks respectable, and is an extrapolation."""
+    concentrations, responses = a_series_that_cannot_pin_a_kd()
+    fit = fit_steady_state(concentrations, responses)
+
+    assert fit.kd > max(concentrations)
+    assert fit.relative_stderr < 0.5, "it does not even look badly determined"
+    assert not fit.kd_is_identified
+    assert fit.kd_range_multiple > 10.0
+
+
+def test_an_unidentifiable_fit_is_not_called_a_fitted_binder() -> None:
+    """It falls through to the shift test, which is what that class is for."""
+    concentrations, responses = a_series_that_cannot_pin_a_kd()
+    fit = fit_steady_state(concentrations, responses)
+
+    assert classify(fit, association_shift_percent=400.0) is BindingCall.SHIFT_ONLY
+    assert classify(fit, association_shift_percent=10.0) is BindingCall.NON_BINDER
+    assert classify(a_fit(), association_shift_percent=0.0) is BindingCall.FITTED
+
+
+def test_a_ratio_refuses_to_propagate_an_extrapolation() -> None:
+    concentrations, responses = a_series_that_cannot_pin_a_kd()
+    unidentified = fit_steady_state(concentrations, responses)
+
+    with pytest.raises(RefitError, match="outside the concentration range"):
+        specificity_ratio(unidentified, a_fit())
+    with pytest.raises(RefitError, match="outside the concentration range"):
+        specificity_ratio(a_fit(kd=1e-6), unidentified)
+
+
+def test_the_runs_test_threshold_is_the_one_sided_five_percent_quantile() -> None:
+    """`FINDINGS.md` F-8 reported power at alpha = 0.05; now the code agrees."""
+    import statistics  # noqa: PLC0415
+
+    from counterscreen.analyze.refit import RUNS_Z_THRESHOLD  # noqa: PLC0415
+    from counterscreen.core.intervals import CONFIDENCE_LEVEL  # noqa: PLC0415
+
+    assert pytest.approx(-1.6448536269514722) == RUNS_Z_THRESHOLD
+    assert (
+        pytest.approx(statistics.NormalDist().inv_cdf(1.0 - CONFIDENCE_LEVEL)) == RUNS_Z_THRESHOLD
+    )
+
+
+def test_f8_still_holds_at_the_corrected_threshold() -> None:
+    """The finding must not have depended on the wrong critical value.
+
+    F-8 fitted a two-site curve as 1:1 and reported z = -1.44 at eight
+    concentration points, undetected. At -1.645 it is still undetected, so the
+    conclusion -- that the test belongs on kinetic residuals -- stands.
+    """
+    from counterscreen.analyze.refit import RUNS_Z_THRESHOLD, Adequacy  # noqa: PLC0415
+
+    eight_point_z = -1.44
+    assert eight_point_z > RUNS_Z_THRESHOLD
+    sixteen_point_z = -3.09
+    assert sixteen_point_z < RUNS_Z_THRESHOLD
+    assert Adequacy.UNTESTED not in {Adequacy.ADEQUATE, Adequacy.INADEQUATE}

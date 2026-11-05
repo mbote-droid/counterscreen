@@ -131,22 +131,45 @@ class Control:
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class FloorReport:
-    """Whether the panel clears the registered floor, and by how much."""
+    """Whether the panel clears the registered floor, and by how much.
+
+    ``single_residue`` and ``foldable`` count the two properties separately
+    and ``usable`` counts controls with **both**, which is the only one the
+    floor can be judged against. Two independent counts cannot answer the
+    question: a panel of five single-residue controls with no published
+    binder sequences reported the floor as met while not one control could be
+    folded (`FINDINGS.md` F-16).
+    """
 
     positives: int
     single_residue: int
     foldable: int
+    usable: int
     required: int = MIN_POSITIVE_CONTROLS
+
+    def __post_init__(self) -> None:
+        """Refuse counts that cannot describe one panel."""
+        if self.usable > min(self.single_residue, self.foldable):
+            msg = (
+                f"usable={self.usable} exceeds single_residue={self.single_residue} "
+                f"or foldable={self.foldable}; a usable control is both"
+            )
+            raise PanelError(msg)
 
     @property
     def met(self) -> bool:
-        """Whether enough single-residue positive controls are available."""
-        return self.single_residue >= self.required
+        """Whether enough *runnable* single-residue positive controls exist.
+
+        Stage -1 folds each control through the same procedure a design gets,
+        so a control with no binder sequence cannot contribute to the
+        calibration whatever its peptides differ by.
+        """
+        return self.usable >= self.required
 
     @property
     def shortfall(self) -> int:
-        """How many single-residue controls are still needed."""
-        return max(0, self.required - self.single_residue)
+        """How many runnable single-residue controls are still needed."""
+        return max(0, self.required - self.usable)
 
 
 def validate_panel(controls: Sequence[Control]) -> None:
@@ -179,6 +202,7 @@ def assess_floor(controls: Sequence[Control]) -> FloorReport:
         positives=len(positives),
         single_residue=sum(1 for c in positives if c.is_single_residue),
         foldable=sum(1 for c in positives if c.is_foldable),
+        usable=sum(1 for c in positives if c.is_single_residue and c.is_foldable),
     )
 
 
@@ -220,6 +244,16 @@ def negative_from(
         derived = reverse(positive.binder_sequence)
     else:
         msg = f"unknown negative kind {kind!r}; expected 'scrambled' or 'reversed'"
+        raise PanelError(msg)
+    if derived == positive.binder_sequence:
+        # A shuffle can return the identity and a palindrome reverses to
+        # itself. The complement of the rule above: a negative control
+        # identical to its positive is not a control, and it would be
+        # registered to fail a gate it should pass.
+        msg = (
+            f"the {kind} negative derived from {positive.name!r} is identical to it; "
+            "pick another seed or another kind"
+        )
         raise PanelError(msg)
 
     return dataclasses.replace(

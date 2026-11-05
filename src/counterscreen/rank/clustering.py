@@ -13,6 +13,18 @@ C do not resemble each other, which is the conservative behaviour for this
 purpose: a chain of near-neighbours is one fold family, and submitting two of
 its ends as though they were independent is the cherry-picking that clustering
 exists to prevent.
+
+**TM-score is not symmetric, and how it is symmetrised is part of the rule.**
+It normalises by the length of one of the two structures, so comparing A to B
+and B to A gives two numbers, and which one is used changes how many clusters
+survive and therefore which designs are submitted. A2 registered the
+threshold and the linkage and left this open, which left a free parameter
+under a pre-registered selection procedure. Amendment A11 registers
+:func:`symmetrise` -- the **larger** of the two directions -- for the same
+reason single linkage was chosen: it merges more readily, so it under-reports
+diversity rather than over-reporting it, and the error it makes is to submit
+fewer independent experiments rather than to call two variants of one fold
+independent.
 """
 
 import dataclasses
@@ -46,6 +58,24 @@ def _validate(labels: Sequence[str], similarity: NDArray[np.float64]) -> None:
     if not np.allclose(similarity, similarity.T, atol=1e-9):
         msg = "similarity must be symmetric; TM-score is not, so symmetrise before clustering"
         raise ClusteringError(msg)
+
+
+def symmetrise(similarity: NDArray[np.float64]) -> NDArray[np.float64]:
+    """Make a TM-score matrix symmetric by taking the larger direction.
+
+    Registered by amendment A11. ``max`` rather than ``min`` or the mean:
+    treating a pair as the same fold when *either* normalisation says so
+    merges more, which keeps clustering conservative in the direction that
+    matters for diversity (`DECISIONS.md` D-2).
+    """
+    matrix = np.asarray(similarity, dtype=np.float64)
+    if matrix.ndim != _SIMILARITY_NDIM or matrix.shape[0] != matrix.shape[1]:
+        msg = f"similarity must be square, got shape {matrix.shape}"
+        raise ClusteringError(msg)
+    if not np.isfinite(matrix).all():
+        msg = "similarity contains non-finite values"
+        raise ClusteringError(msg)
+    return np.maximum(matrix, matrix.T)
 
 
 def single_linkage(

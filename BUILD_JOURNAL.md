@@ -304,3 +304,24 @@ run.
 **Fix.** `ramachandran_untested` is a separate property, it fails the gate,
 and `reasons()` says so rather than reporting an outlier percentage.
 **Regression test.** `test_an_untested_ramachandran_check_does_not_pass`.
+
+### ISSUE-024 · TM-score symmetrisation was an unregistered free parameter · 5 Nov
+
+**Symptom.** `single_linkage` refuses an asymmetric matrix with the message
+"TM-score is not, so symmetrise before clustering", and nothing in the
+codebase symmetrised one.
+**Diagnosis.** TM-score normalises by the length of one of the two structures,
+so A-against-B and B-against-A differ. Which direction is used changes how
+many clusters survive and therefore which designs are submitted. Amendment A2
+registered the threshold and the linkage and left this open, which left a free
+parameter underneath a pre-registered selection procedure — the exact gap A2
+was created to close. A test now demonstrates it: one pair at 0.62 and 0.38
+either merges into one fold family or submits both, on the choice alone.
+**Fix.** Amendment A11 registers `symmetrise`, the larger of the two
+directions, for the same reason single linkage was chosen: it merges more
+readily, so it under-reports diversity rather than over-reporting it.
+`single_linkage` still refuses an asymmetric matrix, so symmetrising stays a
+visible step rather than a hidden one.
+**Regression test.** `test_symmetrise_takes_the_larger_direction`,
+`test_the_choice_of_direction_changes_the_clustering`, and
+`test_an_asymmetric_matrix_is_still_refused_by_the_clusterer`.
