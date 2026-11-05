@@ -362,3 +362,29 @@ three atoms named `CB` in one residue — on its first run. The guard was right.
 **Regression test.** `tests/geometry/test_apolar_patches.py`, fifteen tests,
 including the percolation bound, the invariance of the gated quantity, that an
 atom may belong to two patches, and the differential test against `biotite`.
+
+### ISSUE-027 · The install cell hid its own progress for 79 minutes · 5 Nov
+
+**Symptom.** Cell 2 of the Day-1 notebook ran for 1 h 19 m with no output.
+The session panel read CPU 0.00%, GPU memory 0 bytes, RAM 678 MiB, disk
+2.5 GiB, and the page reported "Failed to save draft".
+**Diagnosis.** Two things, and only one of them is Kaggle's. The cell was
+`!pip install -q boltz 2>&1 | tail -5`: `tail` cannot emit a line until the
+command it is piped from exits, so a stalled install and a healthy one look
+identical for as long as they run, and `-q` removed the progress that would
+have distinguished them. A cell that cannot be observed cannot be diagnosed,
+and the operator had no way to tell a slow install from a dead one. The
+underlying stall is ISSUE-013's open question: 0.00% CPU with a live session
+is a process waiting on the network, which is what pip does when it backtracks
+through an index looking for a version that exists for this interpreter.
+**Fix.** `scripts/kaggle_day1.py` carries replacement cells: a version probe
+that answers in seconds, a `--dry-run` resolve with a 180 s timeout that
+distinguishes "no resolvable version" from "slow download", and an install
+that streams each line with an elapsed-time prefix to both the cell and a log
+file, with a hard 30-minute kill. Cells 0-2 are marked to run with the
+accelerator **off**, because installing needs no GPU and a GPU session spends
+the 30 h/week quota at wall-clock rate regardless of use -- 1 h 19 m of the
+3 h 03 m consumed so far bought nothing.
+**No regression test.** This is an operator-facing notebook cell, outside the
+test suite. The guard is that the replacement cannot run silently: every path
+prints within seconds or exits on a timeout.
