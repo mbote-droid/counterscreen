@@ -325,3 +325,18 @@ visible step rather than a hidden one.
 **Regression test.** `test_symmetrise_takes_the_larger_direction`,
 `test_the_choice_of_direction_changes_the_clustering`, and
 `test_an_asymmetric_matrix_is_still_refused_by_the_clusterer`.
+
+### ISSUE-025 · A CIF handed to the PDB reader failed deep inside biotite · 5 Nov
+
+**Symptom.** `check_geometry.py <out.json> structures/7OW4.cif` ended in
+`biotite.InvalidFileError: '1   ? 26' cannot be parsed into a float`.
+**Diagnosis.** The script's usage line says `<structure.pdb>...` and it calls
+`read_pdb` on every argument. The project holds its sources as mmCIF and its
+prepared targets as PDB, so mixing them in one invocation is the natural thing
+for an operator to try, and the error names neither the file format nor the
+script. On Day 1 that is time spent on the wrong question.
+**Fix.** A reader table keyed by extension, and a `SystemExit` naming what is
+accepted. Running the gate over all ten structures in one command is what
+found F-21, so the fix paid for itself immediately.
+**Regression test.** `test_the_geometry_script_names_the_formats_it_accepts`.
+The report also now carries `chain_gaps`.

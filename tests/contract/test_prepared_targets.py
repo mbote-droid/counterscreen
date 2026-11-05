@@ -274,3 +274,64 @@ def test_each_alignment_bound_applies_on_its_own() -> None:
     assert superpose_on(chain, chain, "A", first=10).paired == 3
     assert superpose_on(chain, chain, "A", last=3).paired == 3
     assert superpose_on(chain, chain, "A", first=10, last=12).paired == 3
+
+
+def test_every_deposited_structure_passes_the_geometry_gate() -> None:
+    """All ten, including the four source files beyond the prepared targets.
+
+    The strongest calibration available, and the one that found F-9, F-11,
+    F-12 and F-21 in turn. `PROTOCOL.md` section 5.3: a positive control
+    failing a gate means the gate is wrong.
+    """
+    from counterscreen.targets.prepare import read_cif  # noqa: PLC0415
+
+    sources = sorted((Path(__file__).resolve().parents[2] / "structures").glob("*.cif"))
+    if not sources:
+        pytest.skip("source structures not available")
+    for source in sources:
+        report = check_geometry(read_cif(source))
+        assert report.passed, (source.name, report.reasons())
+
+
+def test_bond_geometry_is_judged_as_a_fraction_not_on_the_first_outlier() -> None:
+    """`FINDINGS.md` F-21: one residue 0.41 degrees past tolerance in 1,530.
+
+    And the allowance cannot reach a design: at the registered 1%, a single
+    outlier in a 55-75 residue binder is 1.3-1.8% and still fails.
+    """
+    from counterscreen.geometry.validity import BondOutlier, GeometryReport  # noqa: PLC0415
+
+    def with_one_outlier(residues: int) -> GeometryReport:
+        return GeometryReport(
+            chain_breaks=(),
+            chain_gaps=(),
+            clashes=(),
+            ramachandran_outliers=(),
+            ramachandran_evaluated=residues,
+            bond_outliers=(
+                BondOutlier(residue_index=3, measurement="N-CA-C", observed=100.8, ideal=111.2),
+            ),
+            bond_evaluated=residues,
+            non_l_residues=(),
+            cis_peptides=(),
+            disulfides=(),
+            max_outlier_fraction=0.01,
+        )
+
+    for design_length in (55, 70, 75, 100):
+        assert not with_one_outlier(design_length).passed, design_length
+    assert with_one_outlier(1530).passed
+
+
+def test_the_geometry_script_names_the_formats_it_accepts() -> None:
+    """Handing it a .cif used to surface a float-parsing error from biotite."""
+    import sys  # noqa: PLC0415
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+    try:
+        from check_geometry import read_structure  # noqa: PLC0415
+    finally:
+        sys.path.pop(0)
+
+    with pytest.raises(SystemExit, match=r"\.cif"):
+        read_structure(Path("structures/7OW4.xyz"))

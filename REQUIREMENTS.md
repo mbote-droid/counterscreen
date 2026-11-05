@@ -36,6 +36,8 @@ A requirement with no verification method is not a requirement; it is a wish.
 | G-14 | Dihedrals shall be computed only between bonded residues | the cis-peptide spanning 7OW4's gap is gone | **verified** — `FINDINGS.md` F-12 |
 | G-15 | An untested Ramachandran check shall not pass | two-residue structure fails with an "untested" reason | **verified** — `BUILD_JOURNAL.md` ISSUE-023 |
 | G-16 | Clash detection shall be linear in memory | KD-tree cross-checked against every pair | **verified** — `BUILD_JOURNAL.md` ISSUE-021 |
+| G-17 | Bond geometry shall be judged as a fraction of residues, not on the first outlier | one outlier fails at 55–100 residues and passes at 1,530 | **verified** — amendment A12, `FINDINGS.md` F-21 |
+| G-18 | Every deposited structure the project holds shall pass G0 | all ten, prepared targets and sources | **verified** — `FINDINGS.md` F-21 |
 
 ## T · Targets
 
@@ -137,9 +139,9 @@ A requirement with no verification method is not a requirement; it is a wish.
 
 | | Count |
 |---|---|
-| Verified | 76 |
+| Verified | 78 |
 | Pending | 4 |
-| **Total** | **80** |
+| **Total** | **82** |
 
 Every pending requirement is blocked on something this environment cannot
 supply: a GPU, returned experimental data, or an unreachable source. None is

@@ -56,6 +56,7 @@ reader of a preprint cannot infer that from the finding alone.
 | **F-18** | Exact algebraic identity, verified against the mass-action code to machine precision | That realised discrimination is `r(1 − x) + x` in target occupancy, so a K_D ratio is its best case at vanishing dose | **No new biology.** Mass action is textbook, and the identity follows in two lines. It licenses a claim-discipline requirement — a ratio means nothing without a stated occupancy — not a discovery |
 | **F-19** | Reasoning from the metric's construction, supported by the chain composition of the prepared decoys | That `M_pep` and `M_var` compare complexes of different composition, so part of each is normalisation rather than discrimination, and that the registered invariant-surface control measures that bias | **Not yet measured.** No model has been run, so the bias's size and sign are argued from how interface metrics are normalised, not observed. It licenses treating the invariant control's `M_pep` as a calibration; it does not license a correction before that number exists |
 | **F-20** | Direct property of low-temperature sampling | That G1's stringency varies per backbone with sampling diversity, so the effective attempt count must be reported | Nothing about the pass rate, which needs a run. The convergence is a property of T = 0.1 sampling in general, not a measurement on this target |
+| **F-21** | Negative control on all ten structures the project holds | That the bond-geometry rule rejected a deposited structure on one residue 0.41° past tolerance, and that `PREREGISTRATION.md` §3 never listed the criterion | Nothing about the per-residue tolerances, which did not move. Ten structures from two deposition groups is not a validation set, and the τ-angle spread is cited from the ideal-geometry literature rather than measured here |
 
 **Ranked by what a reader should care about: F-6, then F-1, then F-8 and F-18,
 then the rest.** F-6 proposes a mechanism with a testable consequence — that a binder
@@ -98,7 +99,7 @@ rather than by severity.
 | 3 | **M1 is aimed at something that is not there.** 6.4 Å² of one carboxylate oxygen on an 85%-buried residue, whose other partner is modelled in two half-occupied conformations 6 Å apart, and which the only worked discriminator avoids entirely | **Acted on.** A7 cut M1 from nine designs to four; A8 redefined it; F-5, F-6, F-13 are the evidence. The arm is retained deliberately, at its reduced expected value |
 | 4 | **The margin is partly an artefact.** `M_pep` compares complexes of different composition, and interface confidence is a normalised quantity, so some of the margin is the metric rewarding a smaller interface — in the same direction as the signal | **Open, instrument identified.** F-19. The registered invariant-surface control measures the bias; it must be read as a calibration when Stage −1 runs |
 | 5 | **A returned K_D that the data cannot determine.** A standard five-point series fits a weak binder to a K_D 154× above the top concentration with respectable error bars, and the ratio built from it would carry an interval | **Fixed.** F-17. Identifiability is checked, an unidentified fit is not called fitted, and the ratio refuses to propagate one |
-| 6 | **A gate rejecting correct structure.** G0 failed three of five deposited structures on Ramachandran artefacts, then 7OW4 on an unmodelled loop, and its clash cutoff sits 0.02 Å below a real disulfide — in a pipeline where G8 forces designs to carry disulfides | **Fixed, three times.** F-9, F-11, F-12. Six of six deposited structures now pass, and the 1% threshold never moved |
+| 6 | **A gate rejecting correct structure.** G0 failed three of five deposited structures on Ramachandran artefacts, then 7OW4 on an unmodelled loop, then 7OW3 on one bond angle 0.41° past tolerance; and its clash cutoff sits 0.02 Å below a real disulfide, in a pipeline where G8 forces designs to carry disulfides | **Fixed, four times.** F-9, F-11, F-12, F-21. Ten of ten structures now pass and no per-residue tolerance moved. Every one was found by running the gate against experimental coordinates rather than fixtures, and every one erred toward rejecting reality |
 | 7 | **A number that is wrong and looks right.** An unparsed element reading as zero exposure, a conformer chosen by file order, an alignment bound discarded by operator precedence, an untested check reporting as a pass | **Fixed and made inexpressible.** F-13, F-14, ISSUE-021 to ISSUE-023. None had reached a recorded result: the prepared targets regenerate byte-identical and the hotspots re-derive identical |
 | 8 | **A claim the ranked objective does not support.** The K_D ratio is its own best case at vanishing dose; realised discrimination is `r(1 − x) + x` in occupancy, so a hundredfold ratio is tenfold at 90% | **Fixed in the claim discipline.** F-18. The trade-off is computable, and a ratio now licenses a statement only at a stated occupancy |
 | 9 | **The cheap gate is not cheap.** G0 peaked at 10 GB on a four-copy asymmetric unit and 632 MB on one complex, which on a 16 GB box with a model loaded is the step that exhausts it | **Fixed.** ISSUE-021, now 3 MB and 16 MB |
@@ -1030,3 +1031,51 @@ specification, and what was missing is the measurement of what it delivered.
 the clearest example of its shape. Nothing is broken, no number is wrong, and
 a quantity the funnel's interpretation depends on was simply never recorded —
 because the code that handled it correctly made it look handled.
+
+---
+
+## F-21 · The bond-geometry rule had no tolerance for reality, and the pre-registration never listed it
+
+**Believed.** With F-12 fixed, G0 was taken to be calibrated: the five
+prepared targets and 7OW4 all passed. The other four source structures had
+never been run through it, because nothing needed them to be.
+
+**Checked.** Running the gate over all ten structures the project holds,
+**7OW3 failed** — on one residue. Lys186 of chain A has an N–CA–C angle of
+100.79° against an ideal of 111.2°, a deviation of **10.41° against a 10.00°
+tolerance**. One residue in 1,530, over by 0.41°.
+
+**Two defects, one symptom.**
+
+1. **The rule had no outlier allowance.** `passed` required
+   `not self.bond_outliers` — the first residue past tolerance failed the
+   structure, at any count and by any margin. The Ramachandran criterion in
+   the same gate tolerates 1% precisely because real structures contain
+   strained conformations, and the N–CA–C angle (τ) is no different: it
+   varies by several degrees about its ideal value in high-resolution
+   structures, so a 1,500-residue complex containing one residue at 100.8° is
+   crystallography, not a defect.
+2. **`PREREGISTRATION.md` §3 does not list the criterion at all.** It
+   enumerates G0 as "chain break > 4.5 Å; Ramachandran outliers ≥ 1%; any
+   clash, non-L chirality, or non-proline cis-peptide". `PROTOCOL.md` §8
+   includes "bond lengths and angles within standard tolerance". The gate that
+   just rejected a deposited structure is one the pre-registration's own
+   enumeration omits, so it was neither registered nor consciously excluded.
+
+**Changed — amendment A12.** The criterion is registered in `PREREGISTRATION.md`
+§3, with the same 1% outlier fraction the Ramachandran criterion carries. The
+per-residue tolerances are unchanged.
+
+**Why the allowance cannot weaken the gate.** It is arithmetically confined to
+structures larger than 100 residues. A design is 55–75 residues
+(`PROTOCOL.md` §9), so one bond outlier is 1.3–1.8% — above the 1% threshold,
+and it still fails. The allowance reaches deposited complexes and never
+reaches a binder. A test asserts both ends.
+
+**All ten structures now pass.** That is four separate corrections to one gate
+— F-9's region artefacts, F-11's disulfide, F-12's unmodelled loop, and this —
+every one found by running it against experimental coordinates rather than
+against fixtures, and every one in the direction of rejecting reality. A gate
+written from an idealised specification will be too strict in ways the
+specification cannot show you, and the only instrument that finds them is a
+structure somebody solved.

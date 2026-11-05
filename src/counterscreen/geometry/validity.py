@@ -147,6 +147,7 @@ class GeometryReport:
     ramachandran_outliers: tuple[int, ...]
     ramachandran_evaluated: int
     bond_outliers: tuple[BondOutlier, ...]
+    bond_evaluated: int
     non_l_residues: tuple[int, ...]
     cis_peptides: tuple[CisPeptide, ...]
     disulfides: tuple[Disulfide, ...]
@@ -163,6 +164,24 @@ class GeometryReport:
         if self.ramachandran_evaluated == 0:
             return 0.0
         return len(self.ramachandran_outliers) / self.ramachandran_evaluated
+
+    @property
+    def bond_outlier_fraction(self) -> float:
+        """Fraction of residues carrying a bond-geometry outlier.
+
+        Judged as a fraction for the same reason the Ramachandran criterion is
+        (`FINDINGS.md` F-21): real structures contain strained geometry, and a
+        rule that fails on the first residue past tolerance fails
+        crystallography rather than non-physical backbones. 7OW3 has one
+        residue 0.41 degrees past the angle tolerance in 1,530.
+
+        The allowance does not reach a design. At the registered 1% and a
+        55-75 residue binder, one outlier is 1.3-1.8% and still fails, so for
+        everything this gate exists to reject the rule is unchanged.
+        """
+        if self.bond_evaluated == 0:
+            return 0.0
+        return len({outlier.residue_index for outlier in self.bond_outliers}) / self.bond_evaluated
 
     @property
     def ramachandran_untested(self) -> bool:
@@ -182,7 +201,7 @@ class GeometryReport:
         return not (
             self.chain_breaks
             or self.clashes
-            or self.bond_outliers
+            or self.bond_outlier_fraction >= self.max_outlier_fraction
             or self.non_l_residues
             or self.cis_peptides
             or self.ramachandran_untested
@@ -215,8 +234,12 @@ class GeometryReport:
                 f"Ramachandran outliers {self.ramachandran_outlier_fraction:.1%} "
                 f"at or above {self.max_outlier_fraction:.1%}"
             )
-        if self.bond_outliers:
-            found.append(f"{len(self.bond_outliers)} bond geometry outlier(s)")
+        if self.bond_outlier_fraction >= self.max_outlier_fraction:
+            found.append(
+                f"bond geometry outliers {self.bond_outlier_fraction:.1%} "
+                f"at or above {self.max_outlier_fraction:.1%} "
+                f"({len(self.bond_outliers)} measurement(s))"
+            )
         if self.non_l_residues:
             found.append(f"{len(self.non_l_residues)} non-L residue(s)")
         if self.cis_peptides:
@@ -416,8 +439,10 @@ def disulfide_atom_pairs(
 
 def _bond_outliers(
     structure: Structure, length_tolerance: float, angle_tolerance: float
-) -> tuple[BondOutlier, ...]:
+) -> tuple[tuple[BondOutlier, ...], int]:
+    """Bond-geometry deviations, and how many residues could be measured."""
     found: list[BondOutlier] = []
+    evaluated = 0
 
     def check(index: int, label: str, observed: float, ideal: float, tolerance: float) -> None:
         if abs(observed - ideal) > tolerance:
@@ -431,6 +456,7 @@ def _bond_outliers(
             if not residue.has(*("N", "CA", "C")):
                 continue
             index = lookup[id(residue)]
+            evaluated += 1
             n, ca, c = (structure.xyz(residue, atom) for atom in ("N", "CA", "C"))
             check(index, "N-CA", float(distances(n, ca)[0]), IDEAL_N_CA_ANGSTROM, length_tolerance)
             check(index, "CA-C", float(distances(ca, c)[0]), IDEAL_CA_C_ANGSTROM, length_tolerance)
@@ -465,7 +491,7 @@ def _bond_outliers(
                 IDEAL_C_N_CA_DEGREES,
                 angle_tolerance,
             )
-    return tuple(found)
+    return tuple(found), evaluated
 
 
 def check_geometry(structure: Structure, gates: GateConfig | None = None) -> GeometryReport:
@@ -544,6 +570,11 @@ def check_geometry(structure: Structure, gates: GateConfig | None = None) -> Geo
 
     disulfides = find_disulfides(structure, config.g0_disulfide_max_angstrom)
     breaks, gaps = _chain_breaks(structure, config.g0_chain_break_angstrom)
+    bond_outliers, bond_evaluated = _bond_outliers(
+        structure,
+        config.g0_bond_length_tolerance_angstrom,
+        config.g0_bond_angle_tolerance_degrees,
+    )
     return GeometryReport(
         chain_breaks=breaks,
         chain_gaps=gaps,
@@ -554,11 +585,8 @@ def check_geometry(structure: Structure, gates: GateConfig | None = None) -> Geo
         ),
         ramachandran_outliers=tuple(outliers),
         ramachandran_evaluated=evaluated,
-        bond_outliers=_bond_outliers(
-            structure,
-            config.g0_bond_length_tolerance_angstrom,
-            config.g0_bond_angle_tolerance_degrees,
-        ),
+        bond_outliers=bond_outliers,
+        bond_evaluated=bond_evaluated,
         non_l_residues=tuple(non_l),
         cis_peptides=tuple(cis),
         disulfides=disulfides,
